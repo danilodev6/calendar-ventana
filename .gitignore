@@ -38,6 +38,9 @@ yarn-error.log*
 /data/
 /backups/
 
+# prisma generated client (recreated by `prisma generate` via postinstall)
+/src/generated/
+
 # vercel
 .vercel
 

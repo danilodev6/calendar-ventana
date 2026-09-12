@@ -1,6 +1,6 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import type { ReservationModel } from "@/generated/prisma/models";
-import { formatStayRangeEs } from "@/domain/dates";
+import { formatStayRangeEs, todayInTimeZone } from "@/domain/dates";
 import {
   BLOCKING_STATUSES,
   blocksAvailability,
@@ -274,4 +274,85 @@ export async function listReservationsByRange(
     },
     orderBy: [{ checkIn: "asc" }, { checkOut: "asc" }, { id: "asc" }],
   });
+}
+
+// Shareable history filters. "upcoming" means a confirmed stay whose checkout
+// is still ahead of the home civil day.
+export const RESERVATION_FILTERS = [
+  "all",
+  "upcoming",
+  "completed",
+  "cancelled",
+  "inquiries",
+] as const;
+export type ReservationFilter = (typeof RESERVATION_FILTERS)[number];
+
+export function parseReservationFilter(value: unknown): ReservationFilter {
+  if (
+    typeof value === "string" &&
+    (RESERVATION_FILTERS as readonly string[]).includes(value)
+  ) {
+    return value as ReservationFilter;
+  }
+  return "all";
+}
+
+export interface ReservationSearchInput {
+  filter?: ReservationFilter;
+  // Free guest-name text; matched case-insensitively (see searchReservations
+  // for why the match runs outside the database query).
+  search?: string;
+  // Home civil day ("YYYY-MM-DD") used by the upcoming filter. Defaults to
+  // today in the home timezone; injectable for deterministic tests.
+  today?: string;
+}
+
+// Searches history by guest name with a status filter. Results come back
+// newest check-in first with a stable id tiebreak, so pagination stays
+// predictable when it is added later.
+//
+// Name matching is case-insensitive. The SQLite driver rejects Prisma's
+// `mode: "insensitive"` filter, so the match runs in JavaScript over the
+// parameterized status-filtered rows (already correctly ordered). That is
+// safe and fast enough for a single-home volume, and avoids raw SQL.
+export async function searchReservations(
+  input: ReservationSearchInput,
+  options: ServiceOptions = {},
+): Promise<ReservationModel[]> {
+  const client = options.client ?? db;
+  const filter = input.filter ?? "all";
+  const search = input.search?.trim() ?? "";
+  const today = input.today ?? todayInTimeZone();
+
+  const candidates = await client.reservation.findMany({
+    where: {
+      ...(filter === "all" ? {} : { status: statusForFilter(filter) }),
+      ...(filter === "upcoming" ? { checkOut: { gt: today } } : {}),
+    },
+    orderBy: [{ checkIn: "desc" }, { checkOut: "desc" }, { id: "asc" }],
+  });
+  if (search === "") {
+    return candidates;
+  }
+  const needle = search.toLowerCase();
+  return candidates.filter((stay) =>
+    stay.guestName.toLowerCase().includes(needle),
+  );
+}
+
+function statusForFilter(
+  filter: ReservationFilter,
+): ReservationModel["status"] | undefined {
+  switch (filter) {
+    case "upcoming":
+      return "RESERVED";
+    case "completed":
+      return "COMPLETED";
+    case "cancelled":
+      return "CANCELLED";
+    case "inquiries":
+      return "INQUIRY";
+    case "all":
+      return undefined;
+  }
 }

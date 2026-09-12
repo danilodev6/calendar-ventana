@@ -95,8 +95,7 @@ export function formatCivilDate(civilDate: string): string {
   return `${day}/${month}/${parts.year}`;
 }
 
-const MONTH_NAMES_ES = [
-  "enero",
+const MONTH_NAMES_ES = [  "enero",
   "febrero",
   "marzo",
   "abril",
@@ -138,4 +137,23 @@ export function formatStayRangeEs(checkIn: string, checkOut: string): string {
     return `del ${start.day} de ${startMonth} al ${end.day} de ${endMonth} de ${end.year}`;
   }
   return `del ${start.day} de ${startMonth} de ${start.year} al ${end.day} de ${endMonth} de ${end.year}`;
+}
+
+// Home timezone for "today" calculations. Civil dates are never converted to
+// UTC; instead "today" is derived in the home zone and compared as a plain
+// YYYY-MM-DD string.
+export const HOME_TIME_ZONE = "America/Argentina/Buenos_Aires";
+
+// Returns "today" as a civil date in the given timezone. The en-CA locale
+// formats as YYYY-MM-DD regardless of the runtime locale.
+export function todayInTimeZone(
+  timeZone: string = HOME_TIME_ZONE,
+  now: Date = new Date(),
+): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
 }

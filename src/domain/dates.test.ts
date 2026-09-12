@@ -5,9 +5,11 @@ import {
   formatCivilDate,
   formatMonthEs,
   formatStayRangeEs,
+  HOME_TIME_ZONE,
   isValidCivilDate,
   nightsBetween,
   parseCivilDateParts,
+  todayInTimeZone,
   toMonthKey,
 } from "@/domain/dates";
 
@@ -125,5 +127,21 @@ describe("formatStayRangeEs", () => {
 
   it("rejects invalid inputs instead of guessing", () => {
     expect(() => formatStayRangeEs("2026-02-30", "2026-03-01")).toThrow();
+  });
+});
+
+describe("todayInTimeZone", () => {
+  it("derives the home civil day without UTC conversion", () => {
+    // 2026-09-12 02:00 UTC is still September 11th in Buenos Aires (UTC-3).
+    expect(
+      todayInTimeZone(HOME_TIME_ZONE, new Date("2026-09-12T02:00:00Z")),
+    ).toBe("2026-09-11");
+    expect(
+      todayInTimeZone(HOME_TIME_ZONE, new Date("2026-09-12T04:00:00Z")),
+    ).toBe("2026-09-12");
+  });
+
+  it("returns a valid civil date for the default clock", () => {
+    expect(isValidCivilDate(todayInTimeZone())).toBe(true);
   });
 });

@@ -9,6 +9,8 @@ import {
   createReservation,
   getReservationById,
   listReservationsByRange,
+  parseReservationFilter,
+  searchReservations,
   updateReservation,
   withBusyRetry,
 } from "@/server/reservations";
@@ -435,5 +437,182 @@ describe("busy retry", () => {
         2,
       ),
     ).rejects.toBeInstanceOf(ReservationBusyError);
+  });
+});
+
+describe("reservation history search", () => {
+  const HISTORY_TODAY = "2028-06-01";
+
+  beforeAll(async () => {
+    const seed = [
+      {
+        guestName: "Laura Pérez",
+        status: "RESERVED",
+        checkIn: "2028-03-10",
+        checkOut: "2028-03-14",
+      },
+      {
+        guestName: "laura gómez",
+        status: "INQUIRY",
+        checkIn: "2028-04-01",
+        checkOut: "2028-04-05",
+      },
+      {
+        guestName: "Pedro Ruiz",
+        status: "COMPLETED",
+        checkIn: "2028-02-01",
+        checkOut: "2028-02-05",
+      },
+      {
+        guestName: "Ana Gómez",
+        status: "CANCELLED",
+        checkIn: "2028-05-01",
+        checkOut: "2028-05-05",
+      },
+      {
+        guestName: "Laura Pérez",
+        status: "RESERVED",
+        checkIn: "2028-01-10",
+        checkOut: "2028-01-14",
+      },
+      {
+        guestName: "Miguel Torres",
+        status: "RESERVED",
+        checkIn: "2028-07-01",
+        checkOut: "2028-07-05",
+      },
+    ] as const;
+    for (const entry of seed) {
+      await database.client.reservation.create({
+        data: {
+          guestName: entry.guestName,
+          phone: "3415556666",
+          checkIn: entry.checkIn,
+          checkOut: entry.checkOut,
+          status: entry.status,
+        },
+      });
+    }
+  }, SETUP_TIMEOUT_MS);
+
+  it(
+    "lists everything newest check-in first by default",
+    async () => {
+      const listed = await searchReservations(
+        { today: HISTORY_TODAY },
+        { client: database.client },
+      );
+      const history = listed.filter((stay) =>
+        stay.checkIn.startsWith("2028-"),
+      );
+      expect(history).toHaveLength(6);
+      const checkIns = history.map((stay) => stay.checkIn);
+      expect([...checkIns].sort().reverse()).toEqual(checkIns);
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
+    "shows only future confirmed stays as upcoming",
+    async () => {
+      const listed = await searchReservations(
+        { filter: "upcoming", today: HISTORY_TODAY },
+        { client: database.client },
+      );
+      const names = listed
+        .filter((stay) => stay.checkIn.startsWith("2028-"))
+        .map((stay) => stay.guestName);
+      expect(names).toEqual(["Miguel Torres"]);
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
+    "filters by completed, cancelled and inquiry status",
+    async () => {
+      const options = { client: database.client };
+      const completed = await searchReservations(
+        { filter: "completed", today: HISTORY_TODAY },
+        options,
+      );
+      expect(
+        completed
+          .filter((stay) => stay.checkIn.startsWith("2028-"))
+          .map((stay) => stay.guestName),
+      ).toEqual(["Pedro Ruiz"]);
+
+      const cancelled = await searchReservations(
+        { filter: "cancelled", today: HISTORY_TODAY },
+        options,
+      );
+      expect(
+        cancelled
+          .filter((stay) => stay.checkIn.startsWith("2028-"))
+          .map((stay) => stay.guestName),
+      ).toEqual(["Ana Gómez"]);
+
+      const inquiries = await searchReservations(
+        { filter: "inquiries", today: HISTORY_TODAY },
+        options,
+      );
+      expect(
+        inquiries
+          .filter((stay) => stay.checkIn.startsWith("2028-"))
+          .map((stay) => stay.guestName),
+      ).toEqual(["laura gómez"]);
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
+    "finds guest names case-insensitively in both directions",
+    async () => {
+      const options = { client: database.client };
+      for (const search of ["laura", "LAURA", "Laura"]) {
+        const listed = await searchReservations(
+          { search, today: HISTORY_TODAY },
+          options,
+        );
+        const names = listed
+          .filter((stay) => stay.checkIn.startsWith("2028-"))
+          .map((stay) => stay.guestName)
+          .sort();
+        expect(names).toEqual(["Laura Pérez", "Laura Pérez", "laura gómez"]);
+      }
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
+    "trims the search text and combines it with the status filter",
+    async () => {
+      const options = { client: database.client };
+      const trimmed = await searchReservations(
+        { search: "  pedro  ", today: HISTORY_TODAY },
+        options,
+      );
+      expect(
+        trimmed
+          .filter((stay) => stay.checkIn.startsWith("2028-"))
+          .map((stay) => stay.guestName),
+      ).toEqual(["Pedro Ruiz"]);
+
+      const combined = await searchReservations(
+        { filter: "inquiries", search: "laura", today: HISTORY_TODAY },
+        options,
+      );
+      expect(
+        combined
+          .filter((stay) => stay.checkIn.startsWith("2028-"))
+          .map((stay) => stay.guestName),
+      ).toEqual(["laura gómez"]);
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it("falls back to all for unknown filter values", () => {
+    expect(parseReservationFilter("upcoming")).toBe("upcoming");
+    expect(parseReservationFilter("someday")).toBe("all");
+    expect(parseReservationFilter(undefined)).toBe("all");
   });
 });

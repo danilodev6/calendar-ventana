@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  addCivilDays,
   compareCivilDates,
   formatCivilDate,
   formatMonthEs,
@@ -182,5 +183,19 @@ describe("isValidMonthKey", () => {
     expect(isValidMonthKey("2026-9")).toBe(false);
     expect(isValidMonthKey("septiembre")).toBe(false);
     expect(isValidMonthKey(null)).toBe(false);
+  });
+});
+
+describe("addCivilDays", () => {
+  it("shifts across month and year boundaries", () => {
+    expect(addCivilDays("2026-09-12", 5)).toBe("2026-09-17");
+    expect(addCivilDays("2026-09-30", 2)).toBe("2026-10-02");
+    expect(addCivilDays("2026-01-01", -1)).toBe("2025-12-31");
+    expect(addCivilDays("2024-02-28", 1)).toBe("2024-02-29");
+  });
+
+  it("rejects invalid inputs instead of guessing", () => {
+    expect(() => addCivilDays("2026-02-30", 1)).toThrow();
+    expect(() => addCivilDays("2026-09-12", 1.5)).toThrow();
   });
 });

@@ -21,4 +21,25 @@ npm run lint
 npm run typecheck
 npm run test:run
 npm run build
+npm run backup     # snapshot manual de inicio (ver Backups)
 ```
+
+## Backups y restauración
+
+- La base real vive en `data/app.db` (ignorada por Git). Nunca la copies a
+  mano mientras el servidor está activo.
+- `npm run backup` (o `npm run backup -- --kind=shutdown`) genera
+  `backups/reservas-AAAA-MM-DD-start.db` (o `-shutdown.db`): copia consistente
+  vía Online Backup API, validada con `PRAGMA integrity_check` y publicada por
+  rename atómico. Como máximo hay un snapshot de cada tipo por día y se
+  conservan los últimos 30 días.
+- Si un backup falla, los válidos no se tocan y el arranque continúa con un
+  aviso (el launcher de la Fase 13 decide el comportamiento final).
+- Restaurar (siempre con el servidor detenido):
+  1. Resguardá la base actual: renombrá `data/app.db` a
+     `data/app.db.recuperada`.
+  2. Copiá el snapshot elegido a `data/app.db`.
+  3. Iniciá con `npm run dev` y verificá el healthcheck y los conteos.
+- Copiá cada tanto la carpeta `backups/` a un medio externo o nube **con el
+  servidor detenido**: los backups en el mismo disco no cubren rotura o robo
+  del equipo.

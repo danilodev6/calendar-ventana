@@ -22,13 +22,7 @@ export interface IsolatedDatabase {
 export async function createIsolatedDatabase(): Promise<IsolatedDatabase> {
   const directory = mkdtempSync(join(tmpdir(), "reservas-casa-test-"));
   const databaseFileUrl = toDatabaseFileUrl(join(directory, "test.db"));
-  // npx resolves through npx.cmd on Windows without shell-specific syntax.
-  const packageRunner = process.platform === "win32" ? "npx.cmd" : "npx";
-  execFileSync(packageRunner, ["prisma", "migrate", "deploy"], {
-    env: { ...process.env, DATABASE_URL: databaseFileUrl },
-    stdio: "pipe",
-    timeout: MIGRATION_TIMEOUT_MS,
-  });
+  applyMigrations(databaseFileUrl);
   const client = createDatabaseClient(databaseFileUrl);
   return {
     client,
@@ -39,4 +33,16 @@ export async function createIsolatedDatabase(): Promise<IsolatedDatabase> {
       rmSync(directory, { recursive: true, force: true });
     },
   };
+}
+
+// Applies all Prisma migrations to the given database file URL. Shared by
+// suites that manage their own temporary directories (e.g. backup tests).
+export function applyMigrations(databaseFileUrl: string): void {
+  // npx resolves through npx.cmd on Windows without shell-specific syntax.
+  const packageRunner = process.platform === "win32" ? "npx.cmd" : "npx";
+  execFileSync(packageRunner, ["prisma", "migrate", "deploy"], {
+    env: { ...process.env, DATABASE_URL: databaseFileUrl },
+    stdio: "pipe",
+    timeout: MIGRATION_TIMEOUT_MS,
+  });
 }

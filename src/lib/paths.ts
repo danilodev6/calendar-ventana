@@ -14,6 +14,13 @@ export function resolveDataDir(baseDir: string = process.cwd()): string {
   return resolve(baseDir, "data");
 }
 
+// Directory for verified snapshots. It always sits next to the data
+// directory so backups stay on the same filesystem (atomic renames) unless
+// tests point elsewhere.
+export function resolveBackupsDir(baseDir: string = process.cwd()): string {
+  return resolve(resolveDataDir(baseDir), "..", "backups");
+}
+
 // Converts an absolute file path to a Prisma-compatible file: URL.
 // Forward slashes keep the URL valid on Windows and macOS alike.
 export function toDatabaseFileUrl(databaseFilePath: string): string {

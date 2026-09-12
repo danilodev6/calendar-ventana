@@ -175,6 +175,21 @@ export function prevMonthKey(monthKey: string): string {
   return `${year}-${String(month - 1).padStart(2, "0")}`;
 }
 
+// Shifts a civil date by whole calendar days, crossing month and year
+// boundaries. UTC math on explicit parts keeps the result timezone-free.
+export function addCivilDays(civilDate: string, days: number): string {
+  const parts = parseCivilDateParts(civilDate);
+  if (parts === null || !Number.isInteger(days)) {
+    throw new Error("addCivilDays requires a valid civil date and whole days");
+  }
+  const shifted = new Date(
+    Date.UTC(parts.year, parts.month - 1, parts.day + days),
+  );
+  const month = String(shifted.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(shifted.getUTCDate()).padStart(2, "0");
+  return `${shifted.getUTCFullYear()}-${month}-${day}`;
+}
+
 // Home timezone for "today" calculations. Civil dates are never converted to
 // UTC; instead "today" is derived in the home zone and compared as a plain
 // YYYY-MM-DD string.

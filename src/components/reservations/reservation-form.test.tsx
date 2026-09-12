@@ -236,3 +236,43 @@ describe("ReservationForm in edit mode", () => {
     ).toBeNull();
   });
 });
+
+describe("ReservationForm stay dates", () => {
+  it("shows only the picker button until a date is chosen", () => {
+    render(<ReservationForm />);
+    expect(
+      screen.getByRole("button", { name: "Elegir fecha de entrada" }),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: "Elegir fecha de salida" }),
+    ).toBeDefined();
+    expect(screen.queryByText("12/09/2026")).toBeNull();
+  });
+
+  it("writes the chosen date below the button", () => {
+    render(<ReservationForm />);
+    const input = screen.getByLabelText("Entrada") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "2026-09-12" } });
+    expect(screen.getByText("12/09/2026")).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: "Cambiar fecha de entrada" }),
+    ).toBeDefined();
+  });
+
+  it("prefills written dates when editing", () => {
+    render(
+      <ReservationForm
+        reservationId="stay-1"
+        initialValues={{
+          guestName: "Laura Pérez",
+          phone: "3415556666",
+          checkIn: "2026-09-12",
+          checkOut: "2026-09-16",
+          status: "RESERVED",
+        }}
+      />,
+    );
+    expect(screen.getByText("12/09/2026")).toBeDefined();
+    expect(screen.getByText("16/09/2026")).toBeDefined();
+  });
+});

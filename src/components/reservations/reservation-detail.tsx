@@ -4,6 +4,10 @@ import { calculatePendingBalance } from "@/domain/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BOOKING_CHANNEL_LABELS } from "@/components/reservations/reservation-labels";
 import {
+  PaymentQuickActions,
+  StatusQuickActions,
+} from "@/components/reservations/detail-actions";
+import {
   PaymentStatusBadge,
   ReservationStatusBadge,
 } from "@/components/reservations/status-badges";
@@ -40,6 +44,7 @@ export function ReservationDetail({ reservation }: ReservationDetailProps) {
         {reservation.guestName}
       </h1>
 
+      <div className="grid items-stretch gap-4 xl:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>Datos del huésped</CardTitle>
@@ -96,6 +101,15 @@ export function ReservationDetail({ reservation }: ReservationDetailProps) {
               {BOOKING_CHANNEL_LABELS[reservation.channel]}
             </Definition>
           </dl>
+          <div className="mt-4">
+            <p className="mb-2 text-sm font-medium text-zinc-600">
+              Cambiar estado:
+            </p>
+            <StatusQuickActions
+              reservationId={reservation.id}
+              status={reservation.status}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -116,8 +130,20 @@ export function ReservationDetail({ reservation }: ReservationDetailProps) {
             </Definition>
             <Definition term="Saldo">{formatPesos(pending)}</Definition>
           </dl>
+          <div className="mt-4">
+            <p className="mb-2 text-sm font-medium text-zinc-600">
+              Cambiar pago:
+            </p>
+            <PaymentQuickActions
+              reservationId={reservation.id}
+              paymentStatus={reservation.paymentStatus}
+              depositAmount={reservation.depositAmount}
+              totalAmount={reservation.totalAmount}
+            />
+          </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

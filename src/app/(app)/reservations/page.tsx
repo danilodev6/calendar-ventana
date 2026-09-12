@@ -3,9 +3,14 @@ import Link from "next/link";
 
 import {
   parseReservationFilter,
+  parseSortDirection,
   RESERVATION_FILTERS,
   searchReservations,
 } from "@/server/reservations";
+import {
+  buildHistoryHref,
+  toggleSort,
+} from "@/app/(app)/reservations/history-url";
 import { RESERVATION_FILTER_LABELS } from "@/components/reservations/reservation-labels";
 import { ReservationTable } from "@/components/reservations/reservation-table";
 import { buttonVariants } from "@/components/ui/button";
@@ -18,28 +23,21 @@ export const metadata: Metadata = {
 };
 
 interface ReservationsPageProps {
-  searchParams: Promise<{ filter?: string; q?: string }>;
+  searchParams: Promise<{ filter?: string; sort?: string; q?: string }>;
 }
 
-function filterHref(filter: string, query: string): string {
-  const params = new URLSearchParams();
-  params.set("filter", filter);
-  if (query !== "") {
-    params.set("q", query);
-  }
-  return `/reservations?${params.toString()}`;
-}
-
-// Searchable history. Filters and the guest-name search travel as query
-// params so every view is shareable; the search itself needs no JavaScript.
+// Searchable history. Filters, check-in order and the guest-name search
+// travel as query params so every view is shareable; pressing the active
+// filter again flips between newest-first and oldest-first.
 export default async function ReservationsPage({
   searchParams,
 }: ReservationsPageProps) {
   const params = await searchParams;
   const filter = parseReservationFilter(params.filter);
+  const sort = parseSortDirection(params.sort);
   const query = (params.q ?? "").trim();
-  const reservations = await searchReservations({ filter, search: query });
-  const isUnfiltered = filter === "all" && query === "";
+  const reservations = await searchReservations({ filter, search: query, sort });
+  const isUnfiltered = filter === "all" && query === "" && sort === "desc";
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,6 +52,7 @@ export default async function ReservationsPage({
         className="flex flex-col gap-3 md:flex-row"
       >
         <input type="hidden" name="filter" value={filter} />
+        <input type="hidden" name="sort" value={sort} />
         <label htmlFor="reservation-search" className="sr-only">
           Buscar por huésped
         </label>
@@ -75,7 +74,7 @@ export default async function ReservationsPage({
           </button>
           {query !== "" && (
             <Link
-              href={filterHref(filter, "")}
+              href={buildHistoryHref({ filter, sort, query: "" })}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex-1 md:flex-none",
@@ -88,21 +87,45 @@ export default async function ReservationsPage({
       </form>
 
       <nav aria-label="Filtrar por estado" className="flex flex-wrap gap-2">
-        {RESERVATION_FILTERS.map((option) => (
-          <Link
-            key={option}
-            href={filterHref(option, query)}
-            aria-current={option === filter ? "page" : undefined}
-            className={cn(
-              "rounded-full border px-4 py-2 text-base font-medium transition-colors",
-              option === filter
-                ? "border-zinc-900 bg-zinc-900 text-white"
-                : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100",
-            )}
-          >
-            {RESERVATION_FILTER_LABELS[option]}
-          </Link>
-        ))}
+        {RESERVATION_FILTERS.map((option) => {
+          const isActive = option === filter;
+          return (
+            <Link
+              key={option}
+              href={buildHistoryHref({
+                filter: option,
+                sort: isActive ? toggleSort(sort) : sort,
+                query,
+              })}
+              aria-current={isActive ? "page" : undefined}
+              title={
+                isActive
+                  ? sort === "desc"
+                    ? "Ordenadas de más nuevas a más viejas; apretá para invertir"
+                    : "Ordenadas de más viejas a más nuevas; apretá para invertir"
+                  : undefined
+              }
+              className={cn(
+                "rounded-full border px-4 py-2 text-base font-medium transition-colors",
+                isActive
+                  ? "border-zinc-900 bg-zinc-900 text-white"
+                  : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100",
+              )}
+            >
+              {RESERVATION_FILTER_LABELS[option]}
+              {isActive && (
+                <>
+                  <span aria-hidden="true">{sort === "desc" ? " ↓" : " ↑"}</span>
+                  <span className="sr-only">
+                    {sort === "desc"
+                      ? ", orden descendente por entrada"
+                      : ", orden ascendente por entrada"}
+                  </span>
+                </>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       {reservations.length === 0 && isUnfiltered ? (

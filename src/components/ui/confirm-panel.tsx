@@ -27,7 +27,7 @@ export function ConfirmPanel({
     <div
       role="alertdialog"
       aria-label={confirmLabel}
-      className="flex flex-col items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4"
+      className="flex w-full flex-col items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4"
     >
       <p className="text-base text-red-900">{description}</p>
       {error !== null && (

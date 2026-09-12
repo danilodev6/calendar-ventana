@@ -1,29 +1,81 @@
-/* Reservation calendar event styling. Status is carried by color plus the
-   Spanish status text in the event title, never by color alone. */
+/* Reservation calendar styling. Status is carried by color plus the
+   Spanish status text in the event title, never by color alone. Month grids
+   are soft and rounded; events are large pills. */
 
 .calendar-event {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 2px 10px;
   cursor: pointer;
 }
 
 .calendar-event-inquiry {
-  background-color: #b45309;
-  border-color: #b45309;
+  background-color: #f59e0b;
+  border-color: #f59e0b;
+  color: #451a03;
 }
 
 .calendar-event-reserved {
-  background-color: #1d4ed8;
-  border-color: #1d4ed8;
-}
-
-.calendar-event-completed {
-  background-color: #6d28d9;
-  border-color: #6d28d9;
+  background-color: #0ea5e9;
+  border-color: #0ea5e9;
+  color: #082f49;
 }
 
 .calendar-event-cancelled {
-  background-color: #71717a;
-  border-color: #71717a;
-  opacity: 0.65;
+  background-color: #fda4af;
+  border-color: #fda4af;
+  color: #4c0519;
+  opacity: 0.75;
   text-decoration: line-through;
+}
+
+.calendar-event-completed {
+  background-color: #a78bfa;
+  border-color: #a78bfa;
+  color: #2e1065;
+}
+
+/* Softer, larger multi-month grids. */
+.fc-multimonth-month {
+  font-size: 1.05rem;
+}
+
+/* The view itself renders as a bordered scroller box taller than its
+   months; the page scrolls instead, so the outer box goes away and each
+   month keeps its own soft rounded frame. */
+.fc-multimonth.fc-scroller {
+  border: 0;
+  overflow: visible;
+}
+
+.fc-multimonth .fc-scrollgrid {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.fc-multimonth-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  padding: 0.5rem 0.75rem;
+}
+
+.fc-daygrid-day-number {
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 6px 8px;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: rgb(224 242 254 / 0.7);
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: #e7e5e4;
+}
+
+.fc-col-header-cell {
+  font-size: 0.95rem;
+  text-transform: capitalize;
 }

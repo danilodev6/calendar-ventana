@@ -6,20 +6,24 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+export type NavigationTint = "sky" | "emerald" | "violet" | "amber";
+
 export interface NavigationItem {
   href: string;
   // User-visible label. Always Spanish; never show `href` as a label.
   label: string;
   icon: LucideIcon;
+  // Accent used for the active pill; meaning never depends on it alone.
+  tint: NavigationTint;
 }
 
 // Single source of truth for the four primary destinations.
 // Routes stay in English while visible labels are in Spanish.
 export const NAVIGATION_ITEMS: NavigationItem[] = [
-  { href: "/", label: "Calendario", icon: Calendar },
-  { href: "/reservations/new", label: "Nueva reserva", icon: CalendarPlus },
-  { href: "/reservations", label: "Todas las reservas", icon: BookOpen },
-  { href: "/balance", label: "Balance", icon: Scale },
+  { href: "/", label: "Calendario", icon: Calendar, tint: "sky" },
+  { href: "/reservations/new", label: "Nueva reserva", icon: CalendarPlus, tint: "emerald" },
+  { href: "/reservations", label: "Todas las reservas", icon: BookOpen, tint: "violet" },
+  { href: "/balance", label: "Balance", icon: Scale, tint: "amber" },
 ];
 
 // Returns the href of the item that best matches the current path.

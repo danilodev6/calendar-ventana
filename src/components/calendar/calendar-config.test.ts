@@ -2,22 +2,23 @@ import { describe, expect, it } from "vitest";
 
 import {
   CALENDAR_OPTIONS,
-  THREE_MONTH_VIEW,
+  TWO_MONTH_VIEW,
 } from "@/components/calendar/calendar-config";
 
-// Locks the Phase 8 spike decisions: three simultaneous months starting at
-// the current one, one-month navigation steps, Spanish locale with Monday
-// first, and no interactive editing features.
+// Locks the calendar decisions: two simultaneous months starting at the
+// current one, one-month navigation steps, Spanish locale with Monday first,
+// toolbar with navigation buttons only (no range title), and no interactive
+// editing features.
 describe("calendar configuration", () => {
-  it("shows the current month plus the next two in up to three columns", () => {
-    expect(CALENDAR_OPTIONS.initialView).toBe(THREE_MONTH_VIEW);
+  it("shows the current month plus the next one in up to two columns", () => {
+    expect(CALENDAR_OPTIONS.initialView).toBe(TWO_MONTH_VIEW);
     const views = CALENDAR_OPTIONS.views as Record<string, { type: string; duration: { months: number } }>;
-    expect(views[THREE_MONTH_VIEW].type).toBe("multiMonth");
-    expect(views[THREE_MONTH_VIEW].duration).toEqual({ months: 3 });
-    expect(CALENDAR_OPTIONS.multiMonthMaxColumns).toBe(3);
+    expect(views[TWO_MONTH_VIEW].type).toBe("multiMonth");
+    expect(views[TWO_MONTH_VIEW].duration).toEqual({ months: 2 });
+    expect(CALENDAR_OPTIONS.multiMonthMaxColumns).toBe(2);
   });
 
-  it("moves a single month per step with Spanish controls", () => {
+  it("moves a single month per step with Spanish controls and no title", () => {
     expect(CALENDAR_OPTIONS.dateIncrement).toEqual({ months: 1 });
     expect(CALENDAR_OPTIONS.locale).toBe("es");
     expect(CALENDAR_OPTIONS.firstDay).toBe(1);
@@ -25,6 +26,9 @@ describe("calendar configuration", () => {
       today: "Hoy",
       prev: "Anterior",
       next: "Siguiente",
+    });
+    expect(CALENDAR_OPTIONS.headerToolbar).toMatchObject({
+      center: "",
     });
   });
 

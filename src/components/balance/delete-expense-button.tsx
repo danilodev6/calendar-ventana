@@ -28,13 +28,13 @@ export function DeleteExpenseButton({
     setIsPending(true);
     setError(null);
     const result = await deleteExpenseAction(expenseId);
+    setIsPending(false);
     if (result.ok) {
       onDeleted?.(expenseId);
       router.refresh();
       return;
     }
     setError(result.message);
-    setIsPending(false);
   }
 
   if (!confirming) {

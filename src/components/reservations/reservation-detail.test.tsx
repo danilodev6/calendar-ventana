@@ -1,9 +1,17 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ReservationModel } from "@/generated/prisma/models";
 import { ReservationDetail } from "@/components/reservations/reservation-detail";
+
+vi.mock("@/server/reservation-actions", () => ({
+  updateReservationAction: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
 
 afterEach(() => {
   cleanup();

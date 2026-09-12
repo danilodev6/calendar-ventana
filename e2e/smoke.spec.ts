@@ -33,8 +33,10 @@ async function fillNewReservation(
   await page.goto("/reservations/new");
   await page.getByLabel("Nombre del huésped").fill(values.guestName);
   await page.getByLabel("Teléfono").fill(values.phone ?? "3410000000");
-  await page.getByLabel("Entrada").fill(values.checkIn);
-  await page.getByLabel("Salida").fill(values.checkOut);
+  // Stay dates live in visually hidden native inputs behind the picker
+  // buttons; force-fill them and assert the written date appears below.
+  await page.getByLabel("Entrada", { exact: true }).fill(values.checkIn, { force: true });
+  await page.getByLabel("Salida", { exact: true }).fill(values.checkOut, { force: true });
   if (values.statusLabel !== undefined) {
     await page.getByLabel("Estado", { exact: true }).selectOption({ label: values.statusLabel });
   }

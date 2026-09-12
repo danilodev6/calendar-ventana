@@ -32,7 +32,7 @@ afterEach(() => {
 
 describe("ReservationCalendar spike", () => {
   it(
-    "renders three month columns with overlapping stays side by side",
+    "renders two month columns with overlapping stays side by side",
     async () => {
       vi.stubGlobal(
         "fetch",
@@ -44,11 +44,11 @@ describe("ReservationCalendar spike", () => {
       const { container } = render(<ReservationCalendar />);
       await new Promise((resolve) => setTimeout(resolve, 4000));
       const months = container.querySelectorAll(".fc-multimonth-month");
-      expect(months.length).toBe(3);
-      // The initial window is the current month plus the next two.
+      expect(months.length).toBe(2);
+      // The initial window is the current month plus the next one.
       const now = new Date();
       const titleFormat = new Intl.DateTimeFormat("es", { month: "long" });
-      const expectedTitles = [0, 1, 2].map((offset) =>
+      const expectedTitles = [0, 1].map((offset) =>
         titleFormat.format(
           new Date(now.getFullYear(), now.getMonth() + offset, 1),
         ),

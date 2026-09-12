@@ -1,22 +1,23 @@
 import type { CalendarOptions } from "@fullcalendar/core";
 import esLocale from "@fullcalendar/core/locales/es";
 
-// Frozen FullCalendar Standard (MIT) configuration for the main screen,
-// decided in the Phase 8 spike. Only documented multiMonth options are used:
-// a custom three-month view, at most three month columns on desktop, one
-// month steps for prev/next, Spanish locale with Monday first, no
-// drag-and-drop, selection, resources or schedules.
-export const THREE_MONTH_VIEW = "multiMonthThree";
+// Frozen FullCalendar Standard (MIT) configuration for the main screen.
+// Only documented multiMonth options are used: a custom two-month view, at
+// most two month columns on desktop, one month steps for prev/next, Spanish
+// locale with Monday first, no drag-and-drop, selection, resources or
+// schedules. The toolbar carries only navigation buttons: the range title is
+// intentionally omitted.
+export const TWO_MONTH_VIEW = "multiMonthTwo";
 
 export const CALENDAR_OPTIONS: CalendarOptions = {
-  initialView: THREE_MONTH_VIEW,
+  initialView: TWO_MONTH_VIEW,
   views: {
-    [THREE_MONTH_VIEW]: {
+    [TWO_MONTH_VIEW]: {
       type: "multiMonth",
-      duration: { months: 3 },
+      duration: { months: 2 },
     },
   },
-  multiMonthMaxColumns: 3,
+  multiMonthMaxColumns: 2,
   dateIncrement: { months: 1 },
   locales: [esLocale],
   locale: "es",
@@ -28,7 +29,7 @@ export const CALENDAR_OPTIONS: CalendarOptions = {
   displayEventTime: false,
   headerToolbar: {
     start: "prev,next today",
-    center: "title",
+    center: "",
     end: "",
   },
   buttonText: {

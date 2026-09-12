@@ -363,6 +363,12 @@ export function parseReservationFilter(value: unknown): ReservationFilter {
   return "all";
 }
 
+export type SortDirection = "asc" | "desc";
+
+export function parseSortDirection(value: unknown): SortDirection {
+  return value === "asc" ? "asc" : "desc";
+}
+
 export interface ReservationSearchInput {
   filter?: ReservationFilter;
   // Free guest-name text; matched case-insensitively (see searchReservations
@@ -371,16 +377,16 @@ export interface ReservationSearchInput {
   // Home civil day ("YYYY-MM-DD") used by the upcoming filter. Defaults to
   // today in the home timezone; injectable for deterministic tests.
   today?: string;
+  // Check-in order, newest first by default. The id tiebreak always stays
+  // ascending so repeated views are stable.
+  sort?: SortDirection;
 }
 
 // Searches history by guest name with a status filter. Results come back
-// newest check-in first with a stable id tiebreak, so pagination stays
-// predictable when it is added later.
-//
-// Name matching is case-insensitive. The SQLite driver rejects Prisma's
-// `mode: "insensitive"` filter, so the match runs in JavaScript over the
-// parameterized status-filtered rows (already correctly ordered). That is
-// safe and fast enough for a single-home volume, and avoids raw SQL.
+// ordered by check-in (newest first unless ascending is asked), so the
+// history reads chronologically either way. Name matching stays in
+// JavaScript because the SQLite driver rejects Prisma's case-insensitive
+// mode; rows arrive already ordered from the parameterized query.
 export async function searchReservations(
   input: ReservationSearchInput,
   options: ServiceOptions = {},
@@ -389,13 +395,14 @@ export async function searchReservations(
   const filter = input.filter ?? "all";
   const search = input.search?.trim() ?? "";
   const today = input.today ?? todayInTimeZone();
+  const sort = input.sort ?? "desc";
 
   const candidates = await client.reservation.findMany({
     where: {
       ...(filter === "all" ? {} : { status: statusForFilter(filter) }),
       ...(filter === "upcoming" ? { checkOut: { gt: today } } : {}),
     },
-    orderBy: [{ checkIn: "desc" }, { checkOut: "desc" }, { id: "asc" }],
+    orderBy: [{ checkIn: sort }, { checkOut: sort }, { id: "asc" }],
   });
   if (search === "") {
     return candidates;

@@ -104,27 +104,35 @@ export default async function BalancePage({ searchParams }: BalancePageProps) {
       <h2 className="text-2xl font-semibold tracking-tight">{periodTitle}</h2>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="border-emerald-200 bg-emerald-50">
           <CardHeader>
-            <CardTitle>Ingresos</CardTitle>
+            <CardTitle className="text-emerald-900">Ingresos</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold tracking-tight md:text-4xl">
+            <p className="text-3xl font-bold tracking-tight text-emerald-700 md:text-4xl">
               {formatPesos(summary.incomeTotal)}
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-red-200 bg-red-50">
           <CardHeader>
-            <CardTitle>Gastos</CardTitle>
+            <CardTitle className="text-red-900">Gastos</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold tracking-tight md:text-4xl">
+            <p className="text-3xl font-bold tracking-tight text-red-700 md:text-4xl">
               {formatPesos(summary.expenseTotal)}
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={cn(
+            summary.result < 0
+              ? "border-red-200 bg-red-50"
+              : summary.result > 0
+                ? "border-emerald-200 bg-emerald-50"
+                : undefined,
+          )}
+        >
           <CardHeader>
             <CardTitle>Resultado</CardTitle>
           </CardHeader>
@@ -132,7 +140,11 @@ export default async function BalancePage({ searchParams }: BalancePageProps) {
             <p
               className={cn(
                 "text-3xl font-bold tracking-tight md:text-4xl",
-                summary.result < 0 && "text-red-700",
+                summary.result < 0
+                  ? "text-red-700"
+                  : summary.result > 0
+                    ? "text-emerald-700"
+                    : undefined,
               )}
             >
               {formatPesos(summary.result)}
@@ -171,7 +183,7 @@ export default async function BalancePage({ searchParams }: BalancePageProps) {
                 </p>
                 <Link
                   href={`/reservations/${item.reservationId}`}
-                  className="inline-flex min-h-12 items-center font-medium text-blue-700 underline underline-offset-2"
+                  className={buttonVariants({ variant: "info", className: "min-h-10 px-4 py-1 text-sm" })}
                 >
                   Ver
                 </Link>

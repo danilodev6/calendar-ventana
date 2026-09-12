@@ -46,7 +46,7 @@ export default async function ReservationDetailPage({
         <CardHeader>
           <CardTitle>Acciones</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-start gap-4">
+        <CardContent className="flex flex-row flex-wrap items-center gap-3">
           <Link
             href={`/reservations/${id}/edit`}
             className={cn(buttonVariants({ variant: "secondary" }))}

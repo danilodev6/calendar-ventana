@@ -3,8 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm, type FieldPath, type Resolver, type SubmitHandler } from "react-hook-form";
+import {
+  useForm,
+  type FieldPath,
+  type Resolver,
+  type SubmitHandler,
+  type UseFormRegisterReturn,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarDays } from "lucide-react";
+
+import { formatCivilDate } from "@/domain/dates";
 
 import {
   BOOKING_CHANNELS,
@@ -19,6 +28,7 @@ import {
 } from "@/components/reservations/reservation-labels";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PesoInput } from "@/components/ui/peso-input";
 import { cn } from "@/lib/utils";
 import {
   createReservationAction,
@@ -36,6 +46,78 @@ function FieldError({ message }: { message?: string }) {
     <p role="alert" className="text-sm font-medium text-red-700">
       {message}
     </p>
+  );
+}
+
+// Stay dates are picked from the browser calendar popup through an
+// icon-only button: no "dd/mm/yyyy" placeholder is ever shown. Once chosen,
+// the date appears written below the button. Typing is impossible by
+// construction since the native input stays out of reach.
+function StayDateField({
+  id,
+  label,
+  initialValue,
+  registration,
+  error,
+}: {
+  id: string;
+  label: string;
+  initialValue: string | undefined;
+  registration: UseFormRegisterReturn<"checkIn" | "checkOut">;
+  error: string | undefined;
+}) {
+  // Mirrors the picked date as written text without react-hook-form's
+  // `watch` (which the React Compiler cannot compile): the hidden input
+  // stays the single source of truth for validation and submit.
+  const [written, setWritten] = useState<string | null>(() =>
+    initialValue ? formatCivilDate(initialValue) : null,
+  );
+
+  function openPicker() {
+    const input = document.getElementById(id);
+    if (!(input instanceof HTMLInputElement)) {
+      return;
+    }
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+    } else {
+      input.focus();
+    }
+  }
+
+  const action = written ? "Cambiar fecha de" : "Elegir fecha de";
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-base font-medium">
+        {label}
+      </label>
+      <button
+        type="button"
+        onClick={openPicker}
+        aria-label={`${action} ${label.toLowerCase()}`}
+        className="flex h-14 w-full items-center justify-center rounded-xl border border-zinc-300 bg-white transition-colors hover:border-zinc-400 hover:bg-zinc-100"
+      >
+        <CalendarDays aria-hidden="true" className="size-7 text-zinc-700" />
+      </button>
+      {written !== null && (
+        <p aria-live="polite" className="text-lg font-semibold">
+          {written}
+        </p>
+      )}
+      <input
+        id={id}
+        type="date"
+        tabIndex={-1}
+        className="sr-only"
+        {...registration}
+        onChange={(event) => {
+          void registration.onChange(event);
+          const picked = event.target.value;
+          setWritten(picked ? formatCivilDate(picked) : null);
+        }}
+      />
+      <FieldError message={error} />
+    </div>
   );
 }
 
@@ -60,6 +142,7 @@ export function ReservationForm({
   const isEditing = reservationId !== undefined;
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -109,10 +192,12 @@ export function ReservationForm({
         </p>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Datos del huésped</CardTitle>
-        </CardHeader>
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-4">
+          <Card className="p-4 md:p-5">
+            <CardHeader>
+              <CardTitle>Datos del huésped</CardTitle>
+            </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label htmlFor="guestName" className="text-base font-medium">
@@ -215,40 +300,30 @@ export function ReservationForm({
           </div>
         </CardContent>
       </Card>
-
-      <Card>
+        </div>
+        <div className="flex min-w-0 flex-col gap-4">
+      <Card className="p-4 md:p-5">
         <CardHeader>
           <CardTitle>Estadía</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="checkIn" className="text-base font-medium">
-              Entrada
-            </label>
-            <input
-              id="checkIn"
-              type="date"
-              className={inputClassName}
-              {...register("checkIn")}
-            />
-            <FieldError message={errors.checkIn?.message} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="checkOut" className="text-base font-medium">
-              Salida
-            </label>
-            <input
-              id="checkOut"
-              type="date"
-              className={inputClassName}
-              {...register("checkOut")}
-            />
-            <FieldError message={errors.checkOut?.message} />
-          </div>
+          <StayDateField
+            id="checkIn"
+            label="Entrada"
+            initialValue={initialValues?.checkIn}
+            registration={register("checkIn")}
+            error={errors.checkIn?.message}
+          />
+          <StayDateField
+            id="checkOut"
+            label="Salida"
+            initialValue={initialValues?.checkOut}
+            registration={register("checkOut")}
+            error={errors.checkOut?.message}
+          />
         </CardContent>
       </Card>
-
-      <Card>
+      <Card className="p-4 md:p-5">
         <CardHeader>
           <CardTitle>Reserva</CardTitle>
         </CardHeader>
@@ -282,7 +357,7 @@ export function ReservationForm({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="p-4 md:p-5">
         <CardHeader>
           <CardTitle>Pago</CardTitle>
         </CardHeader>
@@ -309,14 +384,11 @@ export function ReservationForm({
               <label htmlFor="totalAmount" className="text-base font-medium">
                 Total en pesos
               </label>
-              <input
+              <PesoInput
+                name="totalAmount"
+                control={control}
                 id="totalAmount"
-                type="number"
-                min={0}
-                step={1}
-                inputMode="numeric"
                 className={cn(inputClassName, "text-right")}
-                {...register("totalAmount", { valueAsNumber: true })}
               />
               <FieldError message={errors.totalAmount?.message} />
             </div>
@@ -324,14 +396,11 @@ export function ReservationForm({
               <label htmlFor="depositAmount" className="text-base font-medium">
                 Seña en pesos
               </label>
-              <input
+              <PesoInput
+                name="depositAmount"
+                control={control}
                 id="depositAmount"
-                type="number"
-                min={0}
-                step={1}
-                inputMode="numeric"
                 className={cn(inputClassName, "text-right")}
-                {...register("depositAmount", { valueAsNumber: true })}
               />
               <FieldError message={errors.depositAmount?.message} />
             </div>
@@ -339,17 +408,19 @@ export function ReservationForm({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-end">
-        <Link href={cancelHref} className={buttonVariants({ variant: "secondary" })}>
-          Cancelar
-        </Link>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting
-            ? "Guardando…"
-            : isEditing
-              ? "Guardar cambios"
-              : "Guardar reserva"}
-        </Button>
+        <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-end">
+          <Link href={cancelHref} className={buttonVariants({ variant: "secondary" })}>
+            Cancelar
+          </Link>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting
+              ? "Guardando…"
+              : isEditing
+                ? "Guardar cambios"
+                : "Guardar reserva"}
+          </Button>
+        </div>
+        </div>
       </div>
     </form>
   );

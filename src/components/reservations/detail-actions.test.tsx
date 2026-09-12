@@ -5,18 +5,23 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CancelReservationButton,
   DeleteReservationButton,
+  PaymentQuickActions,
+  StatusQuickActions,
 } from "@/components/reservations/detail-actions";
 
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
 const mockCancelReservationAction = vi.fn();
 const mockDeleteReservationAction = vi.fn();
+const mockUpdateReservationAction = vi.fn();
 
 vi.mock("@/server/reservation-actions", () => ({
   cancelReservationAction: (...args: unknown[]) =>
     mockCancelReservationAction(...args),
   deleteReservationAction: (...args: unknown[]) =>
     mockDeleteReservationAction(...args),
+  updateReservationAction: (...args: unknown[]) =>
+    mockUpdateReservationAction(...args),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -111,5 +116,217 @@ describe("DeleteReservationButton", () => {
     fireEvent.click(screen.getByRole("button", { name: "Eliminar reserva" }));
     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
     expect(mockDeleteReservationAction).not.toHaveBeenCalled();
+  });
+});
+
+describe("PaymentQuickActions", () => {
+  it("asks for the deposit amount and applies it without navigating", async () => {
+    mockUpdateReservationAction.mockResolvedValueOnce({ ok: true });
+    render(
+      <PaymentQuickActions
+        reservationId="stay-1"
+        paymentStatus="UNPAID"
+        depositAmount={0}
+        totalAmount={500000}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Pago seña" }));
+    const dialog = await screen.findByRole("dialog", { name: "Registrar seña" });
+    expect(dialog).toBeDefined();
+    fireEvent.change(
+      screen.getByLabelText("Importe de la seña en pesos"),
+      { target: { value: "100000" } },
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar seña" }));
+    await waitFor(() => {
+      expect(mockUpdateReservationAction).toHaveBeenCalledWith({
+        id: "stay-1",
+        input: { paymentStatus: "DEPOSIT_PAID", depositAmount: 100000 },
+      });
+      expect(mockRefresh).toHaveBeenCalled();
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+    // The button unlocks after success instead of freezing on "Guardando…".
+    await waitFor(() => {
+      expect(
+        (
+          screen.getByRole("button", {
+            name: "Pagado completo",
+          }) as HTMLButtonElement
+        ).hasAttribute("disabled"),
+      ).toBe(false);
+    });
+  });
+
+  it("rejects empty and excessive deposits inside the dialog", async () => {
+    render(
+      <PaymentQuickActions
+        reservationId="stay-1"
+        paymentStatus="UNPAID"
+        depositAmount={0}
+        totalAmount={500000}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Pago seña" }));
+    await screen.findByRole("dialog", { name: "Registrar seña" });
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar seña" }));
+    expect(
+      await screen.findByText("Ingresá un importe de seña mayor a cero."),
+    ).toBeDefined();
+    expect(mockUpdateReservationAction).not.toHaveBeenCalled();
+
+    fireEvent.change(
+      screen.getByLabelText("Importe de la seña en pesos"),
+      { target: { value: "500000" } },
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar seña" }));
+    expect(
+      await screen.findByText(/La seña debe ser menor que el total/),
+    ).toBeDefined();
+    expect(mockUpdateReservationAction).not.toHaveBeenCalled();
+  });
+
+  it("dismissing the dialog never mutates", () => {
+    render(
+      <PaymentQuickActions
+        reservationId="stay-1"
+        paymentStatus="UNPAID"
+        depositAmount={0}
+        totalAmount={500000}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Pago seña" }));
+    fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    expect(mockUpdateReservationAction).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("dialog", { name: "Registrar seña" }),
+    ).toBeNull();
+  });
+
+  it("offers only full payment once a deposit exists", () => {
+    render(
+      <PaymentQuickActions
+        reservationId="stay-1"
+        paymentStatus="DEPOSIT_PAID"
+        depositAmount={100000}
+        totalAmount={500000}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Pago seña" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Pagado completo" }),
+    ).toBeDefined();
+  });
+
+  it("steps back from full payment instead of locking the state", async () => {
+    mockUpdateReservationAction.mockResolvedValueOnce({ ok: true });
+    render(
+      <PaymentQuickActions
+        reservationId="stay-1"
+        paymentStatus="PAID_FULL"
+        depositAmount={100000}
+        totalAmount={500000}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Pagado completo" }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Volver a seña" }));
+    await waitFor(() => {
+      expect(mockUpdateReservationAction).toHaveBeenCalledWith({
+        id: "stay-1",
+        input: { paymentStatus: "DEPOSIT_PAID" },
+      });
+      expect(mockRefresh).toHaveBeenCalled();
+    });
+  });
+
+  it("steps back to unpaid when full payment kept no deposit", async () => {
+    mockUpdateReservationAction.mockResolvedValueOnce({ ok: true });
+    render(
+      <PaymentQuickActions
+        reservationId="stay-1"
+        paymentStatus="PAID_FULL"
+        depositAmount={0}
+        totalAmount={500000}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Volver a sin pagar" }));
+    await waitFor(() => {
+      expect(mockUpdateReservationAction).toHaveBeenCalledWith({
+        id: "stay-1",
+        input: { paymentStatus: "UNPAID" },
+      });
+    });
+  });
+
+  it("shows server errors inline without navigating away", async () => {
+    mockUpdateReservationAction.mockResolvedValueOnce({
+      ok: false,
+      message: "La base de datos está ocupada. Intentá nuevamente en unos segundos.",
+      fieldIssues: [],
+    });
+    render(
+      <PaymentQuickActions
+        reservationId="stay-1"
+        paymentStatus="DEPOSIT_PAID"
+        depositAmount={100000}
+        totalAmount={500000}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Pagado completo" }));
+    expect(
+      await screen.findByText(/base de datos está ocupada/),
+    ).toBeDefined();
+    expect(mockRefresh).not.toHaveBeenCalled();
+  });
+});
+
+describe("StatusQuickActions", () => {
+  it("offers every status except the current one", async () => {
+    mockUpdateReservationAction.mockResolvedValueOnce({ ok: true });
+    render(
+      <StatusQuickActions reservationId="stay-1" status="INQUIRY" />,
+    );
+    expect(screen.queryByRole("button", { name: "Consulta" })).toBeNull();
+    for (const label of ["Reservada", "Cancelada", "Finalizada"]) {
+      expect(screen.getByRole("button", { name: label })).toBeDefined();
+    }
+    fireEvent.click(screen.getByRole("button", { name: "Reservada" }));
+    await waitFor(() => {
+      expect(mockUpdateReservationAction).toHaveBeenCalledWith({
+        id: "stay-1",
+        input: { status: "RESERVED" },
+      });
+      expect(mockRefresh).toHaveBeenCalled();
+    });
+    // The button unlocks after success instead of freezing on "Guardando…".
+    await waitFor(() => {
+      expect(
+        (
+          screen.getByRole("button", {
+            name: "Reservada",
+          }) as HTMLButtonElement
+        ).hasAttribute("disabled"),
+      ).toBe(false);
+    });
+  });
+
+  it("shows conflict errors without navigating away", async () => {
+    mockUpdateReservationAction.mockResolvedValueOnce({
+      ok: false,
+      message: "Estas fechas ya están ocupadas por la reserva de Ana Gómez",
+      fieldIssues: [],
+    });
+    render(
+      <StatusQuickActions reservationId="stay-1" status="INQUIRY" />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Reservada" }));
+    expect(
+      await screen.findByText(/ya están ocupadas/),
+    ).toBeDefined();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

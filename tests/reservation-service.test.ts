@@ -10,6 +10,7 @@ import {
   getReservationById,
   listReservationsByRange,
   parseReservationFilter,
+  parseSortDirection,
   searchReservations,
   updateReservation,
   withBusyRetry,
@@ -513,6 +514,23 @@ describe("reservation history search", () => {
   );
 
   it(
+    "lists oldest check-in first when ascending is asked",
+    async () => {
+      const listed = await searchReservations(
+        { today: HISTORY_TODAY, sort: "asc" },
+        { client: database.client },
+      );
+      const history = listed.filter((stay) =>
+        stay.checkIn.startsWith("2028-"),
+      );
+      expect(history).toHaveLength(6);
+      const checkIns = history.map((stay) => stay.checkIn);
+      expect([...checkIns].sort()).toEqual(checkIns);
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
     "shows only future confirmed stays as upcoming",
     async () => {
       const listed = await searchReservations(
@@ -614,5 +632,12 @@ describe("reservation history search", () => {
     expect(parseReservationFilter("upcoming")).toBe("upcoming");
     expect(parseReservationFilter("someday")).toBe("all");
     expect(parseReservationFilter(undefined)).toBe("all");
+  });
+
+  it("falls back to newest-first for unknown sort values", () => {
+    expect(parseSortDirection("asc")).toBe("asc");
+    expect(parseSortDirection("desc")).toBe("desc");
+    expect(parseSortDirection("newest")).toBe("desc");
+    expect(parseSortDirection(undefined)).toBe("desc");
   });
 });

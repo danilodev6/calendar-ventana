@@ -10,6 +10,7 @@ import { todayInTimeZone } from "@/domain/dates";
 import { expenseSchema, type ExpenseInput } from "@/domain/schemas";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PesoInput } from "@/components/ui/peso-input";
 import { cn } from "@/lib/utils";
 import {
   createExpenseAction,
@@ -45,6 +46,7 @@ export function ExpenseForm({ expenseId, initialValues }: ExpenseFormProps = {})
   const isEditing = expenseId !== undefined;
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -86,7 +88,8 @@ export function ExpenseForm({ expenseId, initialValues }: ExpenseFormProps = {})
         </p>
       )}
 
-      <Card>
+      <div className="grid items-start gap-4 md:grid-cols-[minmax(0,28rem)_auto] md:justify-start">
+        <Card className="w-full p-4 md:p-5">
         <CardHeader>
           <CardTitle>Datos del gasto</CardTitle>
         </CardHeader>
@@ -119,31 +122,29 @@ export function ExpenseForm({ expenseId, initialValues }: ExpenseFormProps = {})
             <label htmlFor="expense-amount" className="text-base font-medium">
               Monto en pesos
             </label>
-            <input
+            <PesoInput
+              name="amount"
+              control={control}
               id="expense-amount"
-              type="number"
-              min={1}
-              step={1}
-              inputMode="numeric"
               className={cn(inputClassName, "text-right")}
-              {...register("amount", { valueAsNumber: true })}
             />
             <FieldError message={errors.amount?.message} />
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-end">
-        <Link href="/balance" className={buttonVariants({ variant: "secondary" })}>
-          Cancelar
-        </Link>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting
-            ? "Guardando…"
-            : isEditing
-              ? "Guardar cambios"
-              : "Guardar gasto"}
-        </Button>
+        <div className="flex flex-row gap-3 md:flex-col md:pt-1">
+          <Link href="/balance" className={buttonVariants({ variant: "secondary" })}>
+            Cancelar
+          </Link>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting
+              ? "Guardando…"
+              : isEditing
+                ? "Guardar cambios"
+                : "Guardar gasto"}
+          </Button>
+        </div>
       </div>
     </form>
   );

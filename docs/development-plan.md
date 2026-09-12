@@ -81,13 +81,23 @@ SQLite no ofrece una restricción declarativa simple para rangos. Toda creación
 
 ### Cache
 
-Las páginas con Prisma serán dinámicas. Tras una mutación, revalidar las rutas afectadas (`/`, `/reservas`, `/reservas/[id]`, `/balance`) de forma explícita. No agregar una capa de caché propia.
+Las páginas con Prisma serán dinámicas. Tras una mutación, revalidar las rutas afectadas (`/`, `/reservations`, `/reservations/[id]`, `/balance`) de forma explícita. No agregar una capa de caché propia.
 
 ### Configuración y rutas
 
-- Resolver `data/` y `backups/` desde una variable opcional (`RESERVAS_DATA_DIR`) o desde una ubicación estable relativa al directorio de instalación, usando `node:path`; nunca concatenar separadores ni hardcodear rutas de usuario.
+- Resolver `data/` y `backups/` desde una variable opcional (`RESERVATIONS_DATA_DIR`) o desde una ubicación estable relativa al directorio de instalación, usando `node:path`; nunca concatenar separadores ni hardcodear rutas de usuario.
 - `.env` solo para configuración local no secreta como URL de SQLite. Incluir un `.env.example` cuando corresponda, nunca datos reales.
 - La base real y backups deben quedar ignorados por Git; una base de test usa un archivo temporal independiente.
+
+### Idioma y nomenclatura del código
+
+- Todo identificador interno escrito por el equipo debe estar en inglés: variables, constantes, funciones, clases, tipos, interfaces, enums, campos Prisma, nombres de archivos y carpetas, rutas internas, tests, fixtures, scripts, migraciones y claves de configuración.
+- Los nombres deben ser claros y completos en un único idioma. No mezclar español e inglés en identificadores como `crearReservation`, `fechaCheckIn` o `montoTotal`; usar, por ejemplo, `createReservation`, `checkInDate` y `totalAmount`.
+- Comentarios, documentación técnica dentro del código, mensajes de commit sugeridos y nombres de tests también se escriben en inglés para mantener consistencia. Los nombres propios de librerías y protocolos se conservan tal como existen.
+- Todo texto visible o comprensible por la usuaria debe estar en español: navegación, títulos, etiquetas, botones, ayudas, validaciones, confirmaciones, errores, estados vacíos, fechas formateadas y mensajes del launcher. Los valores internos como `PAID_FULL` se traducen mediante un único mapa de etiquetas y nunca se muestran directamente.
+- Los datos introducidos por la usuaria —nombre, localidad, notas, descripción de gastos— se guardan tal como fueron escritos; esta regla no los traduce ni altera.
+- El nombre preexistente del repositorio/directorio `calendar-ventana` se conserva porque fue elegido por el propietario del proyecto; es una excepción nominal y no habilita usar `ventana` ni otros términos españoles en identificadores nuevos.
+- Antes de cerrar cada fase, revisar los archivos nuevos o modificados para detectar identificadores en español o textos visibles en inglés. Cualquier excepción debe corresponder a una API externa y quedar justificada en la revisión de la fase.
 
 ## 4. Reglas de negocio críticas
 
@@ -199,7 +209,7 @@ calendar-ventana/
 │   ├── app/
 │   │   ├── (app)/           # layout con sidebar
 │   │   │   ├── page.tsx     # Calendario
-│   │   │   ├── reservas/
+│   │   │   ├── reservations/
 │   │   │   └── balance/
 │   │   └── api/health/
 │   ├── components/
@@ -266,7 +276,8 @@ Obtener una aplicación Next.js vacía que arranque en macOS/Windows y tenga com
 4. Instalar únicamente las dependencias del stack que vayan a usarse de inmediato; fijar versiones resueltas en `package-lock.json`.
 5. Agregar scripts cross-platform: `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:run`. Evitar comandos Unix dentro de scripts npm.
 6. Configurar alias `@/*`, TypeScript estricto y un test mínimo del runner.
-7. Dejar la portada mínima de bootstrap; no crear todavía pantallas de negocio.
+7. Aplicar desde el primer archivo la convención transversal: identificadores y código en inglés; textos visibles para la usuaria en español.
+8. Dejar la portada mínima de bootstrap; no crear todavía pantallas de negocio.
 
 #### Reglas de negocio involucradas
 
@@ -298,6 +309,7 @@ npm run build
 - [ ] App Router abre una portada mínima.
 - [ ] El directorio es un repositorio Git inicializado y `.gitignore` fue revisado antes del primer commit manual.
 - [ ] Existe un único lockfile npm.
+- [ ] Identificadores, archivos y tests propios están en inglés; la portada y cualquier texto visible están en español.
 - [ ] Lint, tipos, tests y build pasan.
 - [ ] No hay modelo Prisma ni funcionalidad adelantada.
 
@@ -323,7 +335,7 @@ Layout del grupo principal, sidebar, estilos globales, componentes UI mínimos, 
 
 1. Incorporar solo componentes shadcn necesarios (`Button`, `Card`, quizá `Badge`) y Lucide.
 2. Construir sidebar de altura completa con exactamente las cuatro opciones exigidas y estado activo según ruta.
-3. Hacer `/` la ruta Calendario; crear `/reservas/nueva`, `/reservas` y `/balance`.
+3. Hacer `/` la ruta Calendario; crear `/reservations/new`, `/reservations` y `/balance`. Las URLs y carpetas permanecen en inglés aunque sus enlaces visibles sean “Nueva reserva” y “Todas las reservas”.
 4. Agregar encabezados, espacios, foco visible y comportamiento básico para ancho reducido.
 5. Centralizar etiquetas de navegación; no agregar configuración ni submenús.
 
@@ -556,7 +568,7 @@ Entregar el primer flujo vertical usable: crear una consulta o reserva desde el 
 
 #### Archivos/componentes involucrados
 
-Página `/reservas/nueva`, formulario React Hook Form, campos UI, Server Action `createReservation`, mensajes y redirect.
+Página `/reservations/new`, formulario React Hook Form, campos UI, Server Action `createReservation`, mensajes y redirect.
 
 #### Implementación
 
@@ -613,7 +625,7 @@ Encontrar cualquier reserva y comprenderla sin editarla todavía.
 
 #### Archivos/componentes involucrados
 
-`/reservas`, `/reservas/[id]`, query params de filtro/búsqueda, tabla, cards de detalle, helpers de presentación.
+`/reservations`, `/reservations/[id]`, query params de filtro/búsqueda, tabla, cards de detalle, helpers de presentación.
 
 #### Implementación
 
@@ -669,7 +681,7 @@ Completar el ciclo de vida de una reserva con acciones seguras y distinguibles.
 
 #### Archivos/componentes involucrados
 
-`/reservas/[id]/editar`, formulario reutilizado, Server Actions update/cancel/delete, diálogos de confirmación, detalle.
+`/reservations/[id]/edit`, formulario reutilizado, Server Actions update/cancel/delete, diálogos de confirmación, detalle.
 
 #### Implementación
 
@@ -737,7 +749,7 @@ FullCalendar React/Standard/Multi-Month, adaptador reserva-evento, consulta por 
 3. Consultar solo reservas intersectadas con el rango visible y mapear `checkIn`/`checkOut` directamente a evento all-day con final exclusivo.
 4. Mostrar solo apellido/nombre breve y estado; usar texto/icono/color y estilos suficientemente grandes.
 5. Permitir múltiples consultas concurrentes visualmente sin sugerir que bloquean. Mostrar canceladas atenuadas y tachadas por defecto para conservar contexto histórico, con un control simple “Ocultar canceladas” si la vista queda cargada. El spike puede ajustar el estilo, pero no cambiar esta semántica silenciosamente.
-6. Click de evento navega a `/reservas/[id]`.
+6. Click de evento navega a `/reservations/[id]`.
 7. No habilitar selección, edición por drag, recursos ni horarios.
 8. Documentar resultado del spike y confirmar que Standard/MIT basta antes de consolidar dependencia.
 
@@ -962,7 +974,7 @@ Script Node de backup, configuración de paths/retención, tests con bases tempo
 
 1. Elegir una capacidad SQLite disponible desde el driver: preferir Online Backup API si está expuesta y estable; como alternativa simple usar `VACUUM INTO` parametrizado mediante una conexión SQLite controlada.
 2. Crear el snapshot hacia un nombre temporal nuevo en el mismo filesystem; al completar ejecutar `PRAGMA integrity_check` sobre el destino y luego renombrar atómicamente a su nombre final.
-3. Usar dos nombres administrados por día: `reservas-YYYY-MM-DD-start.db` y `reservas-YYYY-MM-DD-shutdown.db`. No sobrescribir un snapshot válido; si se repite el arranque o cierre el mismo día, conservar el ya publicado. Si hay `.tmp` incompleto de un fallo anterior, validarlo/eliminarlo de forma acotada antes de reintentar.
+3. Usar dos nombres administrados por día: `reservations-YYYY-MM-DD-start.db` y `reservations-YYYY-MM-DD-shutdown.db`. No sobrescribir un snapshot válido; si se repite el arranque o cierre el mismo día, conservar el ya publicado. Si hay `.tmp` incompleto de un fallo anterior, validarlo/eliminarlo de forma acotada antes de reintentar.
 4. Retención inicial: conservar snapshots de los últimos 30 días, con un máximo de uno de arranque y uno de cierre por día. Borrar solo archivos cuyo nombre cumpla exactamente el patrón administrado; nunca usar globs destructivos amplios.
 5. Ejecutar el snapshot `start` al iniciar mediante el launcher, con máximo uno exitoso por día. En todo apagado correcto, intentar asegurar también el snapshot `shutdown` del día. El de arranque protege ante cierres abruptos y el de cierre reduce la pérdida posible del trabajo más reciente.
 6. Si el backup falla, no borrar backups válidos y mostrar un aviso claro. Definir si el arranque continúa: recomendado continuar con advertencia visible y log local, salvo que no exista ningún backup válido.
@@ -1241,7 +1253,7 @@ No exponer `0.0.0.0` por defecto. No usar el servidor de desarrollo en la PC fin
 ## 11. Backup y recuperación
 
 - Base primaria: `data/app.db` en disco local, nunca carpeta sincronizada/red mientras está abierta.
-- Backups: `backups/reservas-YYYY-MM-DD-start.db` y `backups/reservas-YYYY-MM-DD-shutdown.db`, máximo uno de cada tipo por día y retención de los últimos 30 días.
+- Backups: `backups/reservations-YYYY-MM-DD-start.db` y `backups/reservations-YYYY-MM-DD-shutdown.db`, máximo uno de cada tipo por día y retención de los últimos 30 días.
 - Método: Online Backup API o `VACUUM INTO`, validación `PRAGMA integrity_check`, publicación por rename.
 - Momentos: arranque intenta asegurar el snapshot `start`; todo apagado correcto intenta asegurar el `shutdown`. Cierre de navegador no cuenta.
 - Logs sin datos personales: fecha, resultado, archivo y error técnico acotado.
@@ -1263,6 +1275,7 @@ No exponer `0.0.0.0` por defecto. No usar el servidor de desarrollo en la PC fin
 - [ ] Balance mensual, histórico y gastos son correctos.
 - [ ] Crear/editar/eliminar gastos funciona con confirmación.
 - [ ] Errores son humanos y las acciones destructivas se distinguen.
+- [ ] Código e identificadores están consistentemente en inglés y todos los textos visibles para la usuaria están en español.
 - [ ] Lint, TypeScript, unitarios, integración, E2E y build pasan.
 - [ ] Backups de arranque y cierre son consistentes, validados y restaurables, con retención por 30 días.
 - [ ] Launcher y cierre controlado funcionan en macOS y Windows 11.
@@ -1299,7 +1312,8 @@ Antes de implementar una fase:
 2. Trabajar únicamente en la fase indicada y preservar cambios existentes.
 3. No ejecutar Git commit, no crear ramas y no adelantar la fase siguiente.
 4. Ejecutar tests y validación proporcional a la fase.
-5. Informar archivos cambiados, decisiones o desvíos y resultados de comandos.
-6. Terminar con **STOP** y esperar revisión humana y commit manual.
+5. Revisar que no se hayan introducido identificadores en español ni textos visibles en inglés, salvo excepciones externas justificadas.
+6. Informar archivos cambiados, decisiones o desvíos y resultados de comandos.
+7. Terminar con **STOP** y esperar revisión humana y commit manual.
 
 Si una decisión descubierta invalida este plan, detenerse y proponer una edición explícita de este documento antes de continuar; no cambiar arquitectura o reglas de negocio silenciosamente.

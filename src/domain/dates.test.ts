@@ -7,6 +7,7 @@ import {
   formatStayRangeEs,
   HOME_TIME_ZONE,
   isValidCivilDate,
+  nextMonthKey,
   nightsBetween,
   parseCivilDateParts,
   todayInTimeZone,
@@ -143,5 +144,21 @@ describe("todayInTimeZone", () => {
 
   it("returns a valid civil date for the default clock", () => {
     expect(isValidCivilDate(todayInTimeZone())).toBe(true);
+  });
+});
+
+describe("nextMonthKey", () => {
+  it("advances within the year", () => {
+    expect(nextMonthKey("2026-09")).toBe("2026-10");
+    expect(nextMonthKey("2026-01")).toBe("2026-02");
+  });
+
+  it("wraps December into January of the next year", () => {
+    expect(nextMonthKey("2026-12")).toBe("2027-01");
+  });
+
+  it("rejects malformed month keys", () => {
+    expect(() => nextMonthKey("2026-13")).toThrow();
+    expect(() => nextMonthKey("septiembre")).toThrow();
   });
 });

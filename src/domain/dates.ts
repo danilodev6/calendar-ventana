@@ -139,6 +139,23 @@ export function formatStayRangeEs(checkIn: string, checkOut: string): string {
   return `del ${start.day} de ${startMonth} de ${start.year} al ${end.day} de ${endMonth} de ${end.year}`;
 }
 
+// Returns the "YYYY-MM" key following the given one, wrapping December
+// into January of the next year.
+export function nextMonthKey(monthKey: string): string {
+  if (!MONTH_KEY_PATTERN.test(monthKey)) {
+    throw new Error("nextMonthKey requires a YYYY-MM month key");
+  }
+  const year = Number(monthKey.slice(0, 4));
+  const month = Number(monthKey.slice(5, 7));
+  if (month < 1 || month > 12) {
+    throw new Error("nextMonthKey requires a YYYY-MM month key");
+  }
+  if (month === 12) {
+    return `${year + 1}-01`;
+  }
+  return `${year}-${String(month + 1).padStart(2, "0")}`;
+}
+
 // Home timezone for "today" calculations. Civil dates are never converted to
 // UTC; instead "today" is derived in the home zone and compared as a plain
 // YYYY-MM-DD string.

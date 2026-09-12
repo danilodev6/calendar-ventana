@@ -205,4 +205,34 @@ describe("ReservationForm in edit mode", () => {
     });
     expect(mockCreateReservationAction).not.toHaveBeenCalled();
   });
+
+  it("submits untouched empty optionals as null instead of failing", async () => {
+    mockUpdateReservationAction.mockResolvedValueOnce({
+      ok: true,
+      reservationId: "stay-1",
+    });
+    render(
+      <ReservationForm
+        reservationId="stay-1"
+        initialValues={{
+          guestName: "Laura Pérez",
+          phone: "3415556666",
+          checkIn: "2026-09-12",
+          checkOut: "2026-09-16",
+          status: "RESERVED",
+          guestCount: null,
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    await waitFor(() => {
+      expect(mockUpdateReservationAction).toHaveBeenCalledWith({
+        id: "stay-1",
+        input: expect.objectContaining({ guestCount: null }),
+      });
+    });
+    expect(
+      screen.queryByText("La cantidad de personas debe ser mayor a cero."),
+    ).toBeNull();
+  });
 });

@@ -160,8 +160,17 @@ export function ReservationForm({
                 step={1}
                 className={inputClassName}
                 {...register("guestCount", {
-                  setValueAs: (value: string) =>
-                    value === "" ? null : Number(value),
+                  // Untouched null/undefined defaults reach this transform
+                  // as-is (not as ""), and Number(null) is 0 while
+                  // Number(undefined) is NaN: normalize every empty shape
+                  // to null so an optional blank stays blank.
+                  setValueAs: (value: unknown) =>
+                    value === "" ||
+                    value === null ||
+                    value === undefined ||
+                    (typeof value === "number" && Number.isNaN(value))
+                      ? null
+                      : Number(value),
                 })}
               />
               <FieldError message={errors.guestCount?.message} />

@@ -16,11 +16,12 @@
     "build": "next build",
     "dist": "node scripts/prepare-dist.mjs",
     "launch": "node scripts/launch.mjs",
-    "start": "next start",
+    "start": "node scripts/serve-standalone.mjs",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.21",
@@ -41,6 +42,7 @@
     "zod": "^4.6.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/react": "^16.3.3",
     "@types/better-sqlite3": "^9.6.0",

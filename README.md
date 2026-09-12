@@ -58,7 +58,8 @@ portable salvo que esa instalación resulte frágil; no se usa Electron.
    migraciones y launcher; `data/` y `backups/` se crean al lado, nunca
    dentro del código.
 3. Instalá Node.js LTS 24 desde https://nodejs.org (opción que agrega Node
-   al PATH).
+   al PATH). El primer `migrate deploy` descarga el motor de migraciones
+   para Windows (internet necesaria una sola vez); el resto funciona offline.
 4. Creá un acceso directo manual “Reservas Casa” que apunte a
    `C:\ReservasCasa\launch.cmd`. El inicio automático con Windows queda
    desactivado por defecto (opción posterior).
@@ -77,6 +78,29 @@ portable salvo que esa instalación resulte frágil; no se usa Electron.
    lo informa y sale sin tocarlo.
 9. Actualización manual: backup previo, detener el servidor, reemplazar la
    carpeta (conservar `data/` y `backups/`), iniciar y verificar healthcheck.
+
+## Actualización y rollback
+
+1. Con el servidor detenido, copiá `data/app.db` y la carpeta `backups/`
+   a un lugar seguro.
+2. Reemplazá el contenido de la instalación con el nuevo `dist/`, sin tocar
+   `data/` ni `backups/`.
+3. Iniciá con el acceso directo: el launcher aplica `migrate deploy`
+   (solo avances, nunca borra datos) y verifica `/api/health`.
+4. Rollback: detené el servidor, restaurá la copia de `data/app.db` (y la
+   carpeta de la versión anterior si cambió el código), e iniciá de nuevo.
+
+## Solución de problemas
+
+- Si `npm ci` no genera `src/generated` (errores de tipos sobre
+  `@/generated/prisma/*`), tu npm tiene `ignore-scripts=true`: ejecutá
+  `npm run postinstall` una vez o reinstalá con
+  `npm ci --ignore-scripts=false`.
+- Si el launcher informa puerto ocupado por otro programa, cerralo o
+  iniciá con `launch.cmd --port=3001` (o el puerto libre que prefieras).
+- Si la consola se cerró a la fuerza, el próximo inicio parte del snapshot
+  de inicio del día y lo informa; verificado con `integrity_check` antes de
+  publicar.
 
 En macOS el flujo equivale con `launch.command` (sirve para pruebas);
 el desarrollo diario sigue con `npm run dev`.

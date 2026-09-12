@@ -1,5 +1,5 @@
 import type { ExpenseModel } from "@/generated/prisma/models";
-import { isValidCivilDate, nextMonthKey } from "@/domain/dates";
+import { isValidMonthKey, nextMonthKey } from "@/domain/dates";
 import { expenseSchema, type ExpenseInput } from "@/domain/schemas";
 import { db } from "@/server/db";
 import type { ServiceOptions } from "@/server/reservations";
@@ -112,14 +112,4 @@ export async function listExpensesByMonth(
     },
     orderBy: [{ date: "asc" }, { id: "asc" }],
   });
-}
-
-const MONTH_KEY_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
-
-function isValidMonthKey(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    MONTH_KEY_PATTERN.test(value) &&
-    isValidCivilDate(`${value}-01`)
-  );
 }

@@ -78,7 +78,7 @@ describe("ExpenseList", () => {
 
   it("shows the empty state without actions", () => {
     render(<ExpenseList expenses={[]} />);
-    expect(screen.getByText("No hay gastos este mes.")).toBeDefined();
+    expect(screen.getByText("No hay gastos en este período.")).toBeDefined();
     expect(screen.queryByRole("link", { name: "Editar" })).toBeNull();
   });
 

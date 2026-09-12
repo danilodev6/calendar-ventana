@@ -2,13 +2,19 @@
 
 import Link from "next/link";
 
-import type { ExpenseModel } from "@/generated/prisma/models";
 import { formatCivilDate } from "@/domain/dates";
 import { DeleteExpenseButton } from "@/components/balance/delete-expense-button";
 import { formatPesos } from "@/lib/format";
 
+export interface ExpenseListItem {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+}
+
 interface ExpenseListProps {
-  expenses: ExpenseModel[];
+  expenses: ExpenseListItem[];
   onDeleted?: (expenseId: string) => void;
 }
 
@@ -17,7 +23,7 @@ export function ExpenseList({ expenses, onDeleted }: ExpenseListProps) {
   if (expenses.length === 0) {
     return (
       <p className="rounded-xl border border-zinc-200 bg-white p-6 text-base text-zinc-600">
-        No hay gastos este mes.
+        No hay gastos en este período.
       </p>
     );
   }

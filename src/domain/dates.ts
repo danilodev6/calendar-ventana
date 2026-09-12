@@ -111,14 +111,19 @@ const MONTH_NAMES_ES = [  "enero",
 
 // Formats a "YYYY-MM" key for display, e.g. "septiembre de 2026".
 export function formatMonthEs(monthKey: string): string {
-  if (!MONTH_KEY_PATTERN.test(monthKey)) {
+  if (!isValidMonthKey(monthKey)) {
     throw new Error("formatMonthEs requires a YYYY-MM month key");
   }
   const month = Number(monthKey.slice(5, 7));
-  if (month < 1 || month > 12) {
-    throw new Error("formatMonthEs requires a YYYY-MM month key");
-  }
   return `${MONTH_NAMES_ES[month - 1]} de ${monthKey.slice(0, 4)}`;
+}
+
+export function isValidMonthKey(value: unknown): value is string {
+  if (typeof value !== "string" || !MONTH_KEY_PATTERN.test(value)) {
+    return false;
+  }
+  const month = Number(value.slice(5, 7));
+  return month >= 1 && month <= 12 && isValidCivilDate(`${value}-01`);
 }
 
 // Formats a stay as a Spanish range, e.g. "del 12 al 16 de septiembre de 2026".
@@ -154,6 +159,20 @@ export function nextMonthKey(monthKey: string): string {
     return `${year + 1}-01`;
   }
   return `${year}-${String(month + 1).padStart(2, "0")}`;
+}
+
+// Returns the "YYYY-MM" key before the given one, wrapping January into
+// December of the previous year.
+export function prevMonthKey(monthKey: string): string {
+  if (!isValidMonthKey(monthKey)) {
+    throw new Error("prevMonthKey requires a YYYY-MM month key");
+  }
+  const year = Number(monthKey.slice(0, 4));
+  const month = Number(monthKey.slice(5, 7));
+  if (month === 1) {
+    return `${year - 1}-12`;
+  }
+  return `${year}-${String(month - 1).padStart(2, "0")}`;
 }
 
 // Home timezone for "today" calculations. Civil dates are never converted to

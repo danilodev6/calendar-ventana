@@ -7,8 +7,10 @@ import {
   formatStayRangeEs,
   HOME_TIME_ZONE,
   isValidCivilDate,
+  isValidMonthKey,
   nextMonthKey,
   nightsBetween,
+  prevMonthKey,
   parseCivilDateParts,
   todayInTimeZone,
   toMonthKey,
@@ -160,5 +162,25 @@ describe("nextMonthKey", () => {
   it("rejects malformed month keys", () => {
     expect(() => nextMonthKey("2026-13")).toThrow();
     expect(() => nextMonthKey("septiembre")).toThrow();
+  });
+});
+
+describe("prevMonthKey", () => {
+  it("goes back within the year", () => {
+    expect(prevMonthKey("2026-09")).toBe("2026-08");
+  });
+
+  it("wraps January into December of the previous year", () => {
+    expect(prevMonthKey("2026-01")).toBe("2025-12");
+  });
+});
+
+describe("isValidMonthKey", () => {
+  it("accepts well-formed months and rejects the rest", () => {
+    expect(isValidMonthKey("2026-09")).toBe(true);
+    expect(isValidMonthKey("2026-13")).toBe(false);
+    expect(isValidMonthKey("2026-9")).toBe(false);
+    expect(isValidMonthKey("septiembre")).toBe(false);
+    expect(isValidMonthKey(null)).toBe(false);
   });
 });

@@ -4,6 +4,7 @@ import {
   compareCivilDates,
   formatCivilDate,
   formatMonthEs,
+  formatStayRangeEs,
   isValidCivilDate,
   nightsBetween,
   parseCivilDateParts,
@@ -100,5 +101,29 @@ describe("formatMonthEs", () => {
   it("rejects malformed month keys", () => {
     expect(() => formatMonthEs("2026-13")).toThrow();
     expect(() => formatMonthEs("septiembre")).toThrow();
+  });
+});
+
+describe("formatStayRangeEs", () => {
+  it("renders stays within one month compactly", () => {
+    expect(formatStayRangeEs("2026-09-12", "2026-09-16")).toBe(
+      "del 12 al 16 de septiembre de 2026",
+    );
+  });
+
+  it("names both months for cross-month stays", () => {
+    expect(formatStayRangeEs("2026-08-28", "2026-09-02")).toBe(
+      "del 28 de agosto al 2 de septiembre de 2026",
+    );
+  });
+
+  it("names both years for cross-year stays", () => {
+    expect(formatStayRangeEs("2026-12-30", "2027-01-02")).toBe(
+      "del 30 de diciembre de 2026 al 2 de enero de 2027",
+    );
+  });
+
+  it("rejects invalid inputs instead of guessing", () => {
+    expect(() => formatStayRangeEs("2026-02-30", "2026-03-01")).toThrow();
   });
 });

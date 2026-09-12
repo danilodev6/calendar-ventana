@@ -121,3 +121,21 @@ export function formatMonthEs(monthKey: string): string {
   }
   return `${MONTH_NAMES_ES[month - 1]} de ${monthKey.slice(0, 4)}`;
 }
+
+// Formats a stay as a Spanish range, e.g. "del 12 al 16 de septiembre de 2026".
+export function formatStayRangeEs(checkIn: string, checkOut: string): string {
+  const start = parseCivilDateParts(checkIn);
+  const end = parseCivilDateParts(checkOut);
+  if (start === null || end === null) {
+    throw new Error("formatStayRangeEs requires two valid civil dates");
+  }
+  const startMonth = MONTH_NAMES_ES[start.month - 1];
+  const endMonth = MONTH_NAMES_ES[end.month - 1];
+  if (start.year === end.year && start.month === end.month) {
+    return `del ${start.day} al ${end.day} de ${endMonth} de ${end.year}`;
+  }
+  if (start.year === end.year) {
+    return `del ${start.day} de ${startMonth} al ${end.day} de ${endMonth} de ${end.year}`;
+  }
+  return `del ${start.day} de ${startMonth} de ${start.year} al ${end.day} de ${endMonth} de ${end.year}`;
+}

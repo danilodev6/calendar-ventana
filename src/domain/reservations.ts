@@ -29,13 +29,17 @@ export type BookingChannel = (typeof BOOKING_CHANNELS)[number];
 // Only confirmed and completed stays occupy dates. Completed stays keep
 // blocking their historical range because they represent a real stay, while
 // inquiries and cancellations never block.
-const BLOCKING_STATUSES: ReadonlySet<ReservationStatus> = new Set([
+export const BLOCKING_STATUSES: readonly ReservationStatus[] = [
   "RESERVED",
   "COMPLETED",
-]);
+];
+
+const BLOCKING_STATUS_SET: ReadonlySet<ReservationStatus> = new Set(
+  BLOCKING_STATUSES,
+);
 
 export function blocksAvailability(status: ReservationStatus): boolean {
-  return BLOCKING_STATUSES.has(status);
+  return BLOCKING_STATUS_SET.has(status);
 }
 
 // Two stays conflict when A.checkIn < B.checkOut && A.checkOut > B.checkIn.

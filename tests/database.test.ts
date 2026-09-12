@@ -1,53 +1,29 @@
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { readdirSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { PrismaClient } from "@/generated/prisma/client";
-import { resolveDatabaseFileUrl, toDatabaseFileUrl } from "@/lib/paths";
+import { resolveDatabaseFileUrl } from "@/lib/paths";
 import {
-  createDatabaseClient,
-  disconnectDatabase,
-} from "@/server/db";
+  createIsolatedDatabase,
+  type IsolatedDatabase,
+} from "./database-helpers";
 
 const SETUP_TIMEOUT_MS = 120000;
 
-// Package runner binary without relying on shell-specific resolution.
-const packageRunner = process.platform === "win32" ? "npx.cmd" : "npx";
+let database: IsolatedDatabase;
 
-let tempDir: string;
-let client: PrismaClient;
-
-function applyMigrations(databaseFileUrl: string): void {
-  execFileSync(packageRunner, ["prisma", "migrate", "deploy"], {
-    env: { ...process.env, DATABASE_URL: databaseFileUrl },
-    stdio: "pipe",
-    timeout: SETUP_TIMEOUT_MS,
-  });
-}
-
-beforeAll(() => {
-  tempDir = mkdtempSync(join(tmpdir(), "reservas-casa-test-"));
-  const databaseFileUrl = toDatabaseFileUrl(join(tempDir, "test.db"));
-  applyMigrations(databaseFileUrl);
-  client = createDatabaseClient(databaseFileUrl);
+beforeAll(async () => {
+  database = await createIsolatedDatabase();
 }, SETUP_TIMEOUT_MS);
 
 afterAll(async () => {
-  if (client !== undefined) {
-    await disconnectDatabase(client);
-  }
-  if (tempDir !== undefined) {
-    rmSync(tempDir, { recursive: true, force: true });
-  }
+  await database.cleanup();
 });
 
 describe("database persistence", () => {
   it(
     "creates and reads a reservation preserving civil dates and integer amounts",
     async () => {
-      const created = await client.reservation.create({
+      const created = await database.client.reservation.create({
         data: {
           guestName: "Laura Pérez",
           phone: "+54 9 11 5555 5555",
@@ -66,7 +42,7 @@ describe("database persistence", () => {
         },
       });
 
-      const read = await client.reservation.findUnique({
+      const read = await database.client.reservation.findUnique({
         where: { id: created.id },
       });
       expect(read?.checkIn).toBe("2026-09-12");
@@ -85,7 +61,7 @@ describe("database persistence", () => {
   it(
     "applies model defaults for status, payment, amounts and channel",
     async () => {
-      const created = await client.reservation.create({
+      const created = await database.client.reservation.create({
         data: {
           guestName: "Pedro Ruiz",
           phone: "3415556666",
@@ -106,7 +82,7 @@ describe("database persistence", () => {
   it(
     "creates and reads an expense with its own civil date",
     async () => {
-      await client.expense.create({
+      await database.client.expense.create({
         data: {
           date: "2026-09-05",
           description: "Limpieza",
@@ -114,7 +90,7 @@ describe("database persistence", () => {
         },
       });
 
-      const found = await client.expense.findMany({
+      const found = await database.client.expense.findMany({
         where: { date: "2026-09-05" },
       });
       expect(found).toHaveLength(1);
@@ -127,10 +103,10 @@ describe("database persistence", () => {
   it(
     "writes only to the isolated temporary database",
     async () => {
-      const files = readdirSync(tempDir);
+      const files = readdirSync(database.directory);
       expect(files.some((file) => file === "test.db")).toBe(true);
       // The development database location is never used by this suite.
-      expect(resolveDatabaseFileUrl()).not.toContain(tempDir);
+      expect(resolveDatabaseFileUrl()).not.toContain(database.directory);
     },
     SETUP_TIMEOUT_MS,
   );

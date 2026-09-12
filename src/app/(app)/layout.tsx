@@ -10,7 +10,13 @@ export default function AppLayout({
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 md:flex-row">
       <AppNavigation />
-      <main className="min-w-0 flex-1">
+      <main id="contenido" className="min-w-0 flex-1">
+        <a
+          href="#contenido"
+          className="sr-only focus:not-sr-only focus:absolute focus:m-4 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:font-medium"
+        >
+          Saltar al contenido
+        </a>
         <div className="mx-auto w-full max-w-4xl p-6 md:p-8">{children}</div>
       </main>
     </div>

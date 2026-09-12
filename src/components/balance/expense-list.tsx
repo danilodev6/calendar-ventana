@@ -42,10 +42,10 @@ export function ExpenseList({ expenses, onDeleted }: ExpenseListProps) {
           <p className="text-base font-semibold md:text-right">
             {formatPesos(expense.amount)}
           </p>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-4">
             <Link
               href={`/balance/expenses/${expense.id}/edit`}
-              className="font-medium text-blue-700 underline underline-offset-2"
+              className="inline-flex min-h-12 items-center font-medium text-blue-700 underline underline-offset-2"
             >
               Editar
             </Link>

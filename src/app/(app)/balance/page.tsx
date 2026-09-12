@@ -171,7 +171,7 @@ export default async function BalancePage({ searchParams }: BalancePageProps) {
                 </p>
                 <Link
                   href={`/reservations/${item.reservationId}`}
-                  className="font-medium text-blue-700 underline underline-offset-2"
+                  className="inline-flex min-h-12 items-center font-medium text-blue-700 underline underline-offset-2"
                 >
                   Ver
                 </Link>

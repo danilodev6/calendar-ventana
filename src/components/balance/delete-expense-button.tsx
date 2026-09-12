@@ -42,7 +42,7 @@ export function DeleteExpenseButton({
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="font-medium text-red-700 underline underline-offset-2"
+        className="inline-flex min-h-12 items-center font-medium text-red-700 underline underline-offset-2"
       >
         Eliminar
       </button>

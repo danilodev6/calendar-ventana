@@ -2,11 +2,11 @@ import type { ReservationModel } from "@/generated/prisma/models";
 import { formatCivilDate, nightsBetween } from "@/domain/dates";
 import { calculatePendingBalance } from "@/domain/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BOOKING_CHANNEL_LABELS } from "@/components/reservations/reservation-labels";
 import {
-  BOOKING_CHANNEL_LABELS,
-  PAYMENT_STATUS_LABELS,
-  RESERVATION_STATUS_LABELS,
-} from "@/components/reservations/reservation-labels";
+  PaymentStatusBadge,
+  ReservationStatusBadge,
+} from "@/components/reservations/status-badges";
 import { formatPesos } from "@/lib/format";
 
 interface ReservationDetailProps {
@@ -90,7 +90,7 @@ export function ReservationDetail({ reservation }: ReservationDetailProps) {
         <CardContent>
           <dl className="grid gap-2 text-base">
             <Definition term="Estado">
-              {RESERVATION_STATUS_LABELS[reservation.status]}
+              <ReservationStatusBadge status={reservation.status} />
             </Definition>
             <Definition term="Origen">
               {BOOKING_CHANNEL_LABELS[reservation.channel]}
@@ -106,7 +106,7 @@ export function ReservationDetail({ reservation }: ReservationDetailProps) {
         <CardContent>
           <dl className="grid gap-2 text-base">
             <Definition term="Estado">
-              {PAYMENT_STATUS_LABELS[reservation.paymentStatus]}
+              <PaymentStatusBadge status={reservation.paymentStatus} />
             </Definition>
             <Definition term="Total">
               {formatPesos(reservation.totalAmount)}

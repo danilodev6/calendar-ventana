@@ -4,9 +4,9 @@ import type { ReservationModel } from "@/generated/prisma/models";
 import { formatCivilDate, nightsBetween } from "@/domain/dates";
 import { formatPesos } from "@/lib/format";
 import {
-  PAYMENT_STATUS_LABELS,
-  RESERVATION_STATUS_LABELS,
-} from "@/components/reservations/reservation-labels";
+  PaymentStatusBadge,
+  ReservationStatusBadge,
+} from "@/components/reservations/status-badges";
 
 interface ReservationTableProps {
   reservations: ReservationModel[];
@@ -74,10 +74,10 @@ export function ReservationTable({ reservations }: ReservationTableProps) {
                 {reservation.guestCount ?? "—"}
               </td>
               <td className="px-4 py-3">
-                {RESERVATION_STATUS_LABELS[reservation.status]}
+                <ReservationStatusBadge status={reservation.status} />
               </td>
               <td className="px-4 py-3">
-                {PAYMENT_STATUS_LABELS[reservation.paymentStatus]}
+                <PaymentStatusBadge status={reservation.paymentStatus} />
               </td>
               <td className="px-4 py-3 text-right">
                 {formatPesos(reservation.totalAmount)}
@@ -85,7 +85,7 @@ export function ReservationTable({ reservations }: ReservationTableProps) {
               <td className="px-4 py-3">
                 <Link
                   href={`/reservations/${reservation.id}`}
-                  className="font-medium text-blue-700 underline underline-offset-2"
+                  className="inline-flex min-h-12 items-center font-medium text-blue-700 underline underline-offset-2"
                 >
                   Ver
                 </Link>

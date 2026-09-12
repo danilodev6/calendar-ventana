@@ -317,6 +317,31 @@ export async function listReservationsByRange(
   });
 }
 
+// Minimal calendar projection. Money and payment data never leave the
+// server for this view; the calendar only needs identity, name, range and
+// status.
+export interface CalendarStayJson {
+  id: string;
+  guestName: string;
+  checkIn: string;
+  checkOut: string;
+  status: ReservationModel["status"];
+}
+
+export async function getCalendarStaysInRange(
+  filter: StayRangeFilter,
+  options: ServiceOptions = {},
+): Promise<CalendarStayJson[]> {
+  const stays = await listReservationsByRange(filter, options);
+  return stays.map((stay) => ({
+    id: stay.id,
+    guestName: stay.guestName,
+    checkIn: stay.checkIn,
+    checkOut: stay.checkOut,
+    status: stay.status,
+  }));
+}
+
 // Shareable history filters. "upcoming" means a confirmed stay whose checkout
 // is still ahead of the home civil day.
 export const RESERVATION_FILTERS = [

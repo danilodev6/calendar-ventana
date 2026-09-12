@@ -1,0 +1,29 @@
+/* Reservation calendar event styling. Status is carried by color plus the
+   Spanish status text in the event title, never by color alone. */
+
+.calendar-event {
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.calendar-event-inquiry {
+  background-color: #b45309;
+  border-color: #b45309;
+}
+
+.calendar-event-reserved {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.calendar-event-completed {
+  background-color: #6d28d9;
+  border-color: #6d28d9;
+}
+
+.calendar-event-cancelled {
+  background-color: #71717a;
+  border-color: #71717a;
+  opacity: 0.65;
+  text-decoration: line-through;
+}

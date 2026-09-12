@@ -78,6 +78,15 @@ export class ReservationBusyError extends Error {
   }
 }
 
+export class ReservationInvalidStateError extends Error {
+  readonly code = "RESERVATION_INVALID_STATE";
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ReservationInvalidStateError";
+  }
+}
+
 // Local promise-chain mutex, scoped to reservation writes in this process.
 class WriteMutex {
   private tail: Promise<void> = Promise.resolve();
@@ -253,6 +262,38 @@ export async function getReservationById(
 ): Promise<ReservationModel | null> {
   const client = options.client ?? db;
   return client.reservation.findUnique({ where: { id } });
+}
+
+// Cancels a stay while preserving its record: the status becomes CANCELLED,
+// which frees the dates and removes any income. Cancelling twice is rejected
+// so history cannot be rewritten by accident.
+export async function cancelReservation(
+  id: string,
+  options: ServiceOptions = {},
+): Promise<ReservationModel> {
+  const client = options.client ?? db;
+  const existing = await client.reservation.findUnique({ where: { id } });
+  if (existing === null) {
+    throw new ReservationNotFoundError();
+  }
+  if (existing.status === "CANCELLED") {
+    throw new ReservationInvalidStateError("La reserva ya está cancelada.");
+  }
+  return updateReservation(id, { status: "CANCELLED" }, options);
+}
+
+// Permanently removes a stay. Reserved for load mistakes: cancelling keeps
+// history, deleting erases it.
+export async function deleteReservation(
+  id: string,
+  options: ServiceOptions = {},
+): Promise<void> {
+  const client = options.client ?? db;
+  const existing = await client.reservation.findUnique({ where: { id } });
+  if (existing === null) {
+    throw new ReservationNotFoundError();
+  }
+  await client.reservation.delete({ where: { id } });
 }
 
 export interface StayRangeFilter {

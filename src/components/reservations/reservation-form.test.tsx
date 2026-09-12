@@ -13,10 +13,13 @@ import { ReservationForm } from "@/components/reservations/reservation-form";
 
 const mockPush = vi.fn();
 const mockCreateReservationAction = vi.fn();
+const mockUpdateReservationAction = vi.fn();
 
 vi.mock("@/server/reservation-actions", () => ({
   createReservationAction: (...args: unknown[]) =>
     mockCreateReservationAction(...args),
+  updateReservationAction: (...args: unknown[]) =>
+    mockUpdateReservationAction(...args),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -161,5 +164,45 @@ describe("ReservationForm", () => {
       (screen.getByLabelText("Nombre del huésped") as HTMLInputElement).value,
     ).toBe("Laura Pérez");
     expect(mockPush).not.toHaveBeenCalled();
+  });
+});
+
+describe("ReservationForm in edit mode", () => {
+  it("preloads values, saves changes and returns to the detail", async () => {
+    mockUpdateReservationAction.mockResolvedValueOnce({
+      ok: true,
+      reservationId: "stay-1",
+    });
+    render(
+      <ReservationForm
+        reservationId="stay-1"
+        initialValues={{
+          guestName: "Laura Pérez",
+          phone: "3415556666",
+          checkIn: "2026-09-12",
+          checkOut: "2026-09-16",
+          status: "RESERVED",
+        }}
+      />,
+    );
+    expect(
+      (screen.getByLabelText("Nombre del huésped") as HTMLInputElement).value,
+    ).toBe("Laura Pérez");
+    expect(screen.getByRole("link", { name: "Cancelar" }).getAttribute("href")).toBe(
+      "/reservations/stay-1",
+    );
+
+    fireEvent.change(screen.getByLabelText("Teléfono"), {
+      target: { value: "3410001111" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    await waitFor(() => {
+      expect(mockUpdateReservationAction).toHaveBeenCalledWith({
+        id: "stay-1",
+        input: expect.objectContaining({ phone: "3410001111" }),
+      });
+      expect(mockPush).toHaveBeenCalledWith("/reservations/stay-1");
+    });
+    expect(mockCreateReservationAction).not.toHaveBeenCalled();
   });
 });

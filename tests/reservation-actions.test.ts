@@ -4,7 +4,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { ReservationInput } from "@/domain/schemas";
 import {
+  cancelReservationActionWithClient,
   createReservationActionWithClient,
+  deleteReservationActionWithClient,
+  updateReservationActionWithClient,
 } from "@/server/reservation-actions";
 import { getReservationById } from "@/server/reservations";
 import { disconnectDatabase } from "@/server/db";
@@ -178,6 +181,241 @@ describe("createReservationAction", () => {
           "Ocurrió un error inesperado. Intentá nuevamente.",
         );
       }
+    },
+    SETUP_TIMEOUT_MS,
+  );
+});
+
+describe("updateReservationAction", () => {
+  it(
+    "edits notes and payment without clashing with itself",
+    async () => {
+      const created = await createReservationActionWithClient(
+        reservationInput({
+          checkIn: "2027-10-01",
+          checkOut: "2027-10-05",
+          status: "RESERVED",
+        }),
+        database.client,
+      );
+      expect(created.ok).toBe(true);
+      if (!created.ok) {
+        return;
+      }
+      const updated = await updateReservationActionWithClient(
+        {
+          id: created.reservationId,
+          input: {
+            notes: "Llega tarde",
+            paymentStatus: "DEPOSIT_PAID",
+            totalAmount: 500000,
+            depositAmount: 100000,
+          },
+        },
+        database.client,
+      );
+      expect(updated).toEqual(
+        expect.objectContaining({ ok: true, reservationId: created.reservationId }),
+      );
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
+    "rejects moves into occupied ranges with a human message",
+    async () => {
+      const first = await createReservationActionWithClient(
+        reservationInput({
+          checkIn: "2027-11-01",
+          checkOut: "2027-11-05",
+          status: "RESERVED",
+        }),
+        database.client,
+      );
+      const second = await createReservationActionWithClient(
+        reservationInput({
+          guestName: "Ana Gómez",
+          checkIn: "2027-11-10",
+          checkOut: "2027-11-14",
+          status: "RESERVED",
+        }),
+        database.client,
+      );
+      expect(first.ok).toBe(true);
+      expect(second.ok).toBe(true);
+      if (!second.ok) {
+        return;
+      }
+      const result = await updateReservationActionWithClient(
+        {
+          id: second.reservationId,
+          input: { checkIn: "2027-11-03", checkOut: "2027-11-07" },
+        },
+        database.client,
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.message).toContain("Laura Pérez");
+      }
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
+    "reports unknown ids instead of inventing them",
+    async () => {
+      const result = await updateReservationActionWithClient(
+        { id: "missing-id", input: { notes: "Hola" } },
+        database.client,
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.message).toContain("no existe");
+      }
+    },
+    SETUP_TIMEOUT_MS,
+  );
+});
+
+describe("cancelReservationAction", () => {
+  it(
+    "keeps the record, frees the dates and drops the income",
+    async () => {
+      const created = await createReservationActionWithClient(
+        reservationInput({
+          checkIn: "2027-12-01",
+          checkOut: "2027-12-05",
+          status: "RESERVED",
+          paymentStatus: "PAID_FULL",
+          totalAmount: 500000,
+        }),
+        database.client,
+      );
+      expect(created.ok).toBe(true);
+      if (!created.ok) {
+        return;
+      }
+      const cancelled = await cancelReservationActionWithClient(
+        created.reservationId,
+        database.client,
+      );
+      expect(cancelled.ok).toBe(true);
+
+      const stored = await getReservationById(created.reservationId, {
+        client: database.client,
+      });
+      expect(stored?.status).toBe("CANCELLED");
+      expect(stored?.guestName).toBe("Laura Pérez");
+      expect(stored?.totalAmount).toBe(500000);
+
+      const reused = await createReservationActionWithClient(
+        reservationInput({
+          guestName: "Ana Gómez",
+          checkIn: "2027-12-01",
+          checkOut: "2027-12-05",
+          status: "RESERVED",
+        }),
+        database.client,
+      );
+      expect(reused.ok).toBe(true);
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
+    "refuses to cancel twice and reports unknown ids",
+    async () => {
+      const created = await createReservationActionWithClient(
+        reservationInput({
+          checkIn: "2028-01-05",
+          checkOut: "2028-01-09",
+          status: "RESERVED",
+        }),
+        database.client,
+      );
+      expect(created.ok).toBe(true);
+      if (!created.ok) {
+        return;
+      }
+      expect(
+        await cancelReservationActionWithClient(
+          created.reservationId,
+          database.client,
+        ),
+      ).toEqual(expect.objectContaining({ ok: true }));
+
+      const repeated = await cancelReservationActionWithClient(
+        created.reservationId,
+        database.client,
+      );
+      expect(repeated.ok).toBe(false);
+      if (!repeated.ok) {
+        expect(repeated.message).toContain("ya está cancelada");
+      }
+
+      const missing = await cancelReservationActionWithClient(
+        "missing-id",
+        database.client,
+      );
+      expect(missing.ok).toBe(false);
+    },
+    SETUP_TIMEOUT_MS,
+  );
+});
+
+describe("deleteReservationAction", () => {
+  it(
+    "removes only the indicated stay",
+    async () => {
+      const first = await createReservationActionWithClient(
+        reservationInput({
+          checkIn: "2028-02-01",
+          checkOut: "2028-02-05",
+          status: "RESERVED",
+        }),
+        database.client,
+      );
+      const second = await createReservationActionWithClient(
+        reservationInput({
+          guestName: "Ana Gómez",
+          checkIn: "2028-02-10",
+          checkOut: "2028-02-14",
+          status: "RESERVED",
+        }),
+        database.client,
+      );
+      expect(first.ok).toBe(true);
+      expect(second.ok).toBe(true);
+      if (!first.ok || !second.ok) {
+        return;
+      }
+      const deleted = await deleteReservationActionWithClient(
+        first.reservationId,
+        database.client,
+      );
+      expect(deleted.ok).toBe(true);
+      expect(
+        await getReservationById(first.reservationId, {
+          client: database.client,
+        }),
+      ).toBeNull();
+      expect(
+        await getReservationById(second.reservationId, {
+          client: database.client,
+        }),
+      ).not.toBeNull();
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  it(
+    "reports unknown ids instead of succeeding silently",
+    async () => {
+      const result = await deleteReservationActionWithClient(
+        "missing-id",
+        database.client,
+      );
+      expect(result.ok).toBe(false);
     },
     SETUP_TIMEOUT_MS,
   );

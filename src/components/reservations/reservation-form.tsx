@@ -20,7 +20,10 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { createReservationAction } from "@/server/reservation-actions";
+import {
+  createReservationAction,
+  updateReservationAction,
+} from "@/server/reservation-actions";
 
 const inputClassName =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-base";
@@ -36,12 +39,25 @@ function FieldError({ message }: { message?: string }) {
   );
 }
 
-// Creation form for inquiries and stays. The same Zod schema validates here
-// for instant feedback and again on the server as the authoritative check.
-// Amounts travel as whole-peso numbers; decimals are rejected server-side.
-export function ReservationForm() {
+// Shared create/edit form for inquiries and stays. The same fields and Zod
+// schema serve both flows; edit mode only preloads values, posts to the
+// update action and returns to the detail page. The same schema validates
+// here for instant feedback and again on the server as the authoritative
+// check. Amounts travel as whole-peso numbers; decimals are rejected
+// server-side.
+export interface ReservationFormProps {
+  // When present the form edits that stay instead of creating a new one.
+  reservationId?: string;
+  initialValues?: Partial<ReservationInput>;
+}
+
+export function ReservationForm({
+  reservationId,
+  initialValues,
+}: ReservationFormProps = {}) {
   const router = useRouter();
   const [businessError, setBusinessError] = useState<string | null>(null);
+  const isEditing = reservationId !== undefined;
   const {
     register,
     handleSubmit,
@@ -58,12 +74,15 @@ export function ReservationForm() {
       channel: "DIRECT",
       totalAmount: 0,
       depositAmount: 0,
+      ...initialValues,
     },
   });
 
   const onSubmit: SubmitHandler<ReservationInput> = async (values) => {
     setBusinessError(null);
-    const result = await createReservationAction(values);
+    const result = isEditing
+      ? await updateReservationAction({ id: reservationId, input: values })
+      : await createReservationAction(values);
     if (result.ok) {
       router.push(`/reservations/${result.reservationId}`);
       return;
@@ -76,6 +95,8 @@ export function ReservationForm() {
     }
     setBusinessError(result.message);
   };
+
+  const cancelHref = isEditing ? `/reservations/${reservationId}` : "/reservations";
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-6">
@@ -310,11 +331,15 @@ export function ReservationForm() {
       </Card>
 
       <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-end">
-        <Link href="/reservations" className={buttonVariants({ variant: "secondary" })}>
+        <Link href={cancelHref} className={buttonVariants({ variant: "secondary" })}>
           Cancelar
         </Link>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Guardando…" : "Guardar reserva"}
+          {isSubmitting
+            ? "Guardando…"
+            : isEditing
+              ? "Guardar cambios"
+              : "Guardar reserva"}
         </Button>
       </div>
     </form>

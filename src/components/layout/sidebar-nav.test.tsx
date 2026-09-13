@@ -74,7 +74,7 @@ describe("SidebarNav", () => {
     const nav = screen.getByRole("navigation");
     const links = within(nav).getAllByRole("link");
     for (const link of links) {
-      expect(link.className).toContain("min-h-12");
+      expect(link.className).toContain("min-h-14");
     }
   });
 });

@@ -13,19 +13,26 @@ export function AppNavigation() {
 
   return (
     <>
-      <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] w-80 shrink-0 flex-col gap-6 overflow-y-auto rounded-3xl border border-zinc-200/70 bg-white p-5 shadow-sm md:flex">
-        <div className="flex items-center gap-3 px-1 pt-1">
+      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-zinc-200/80 bg-white/90 px-5 py-6 shadow-[12px_0_40px_rgba(24,24,27,0.04)] backdrop-blur-xl md:flex">
+        <div className="flex items-center gap-3 px-2 pb-7">
           <span
             aria-hidden="true"
-            className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-violet-500 text-white"
+            className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/20"
           >
-            <House className="size-6" />
+            <House className="size-5" strokeWidth={2.25} />
           </span>
-          <p className="text-2xl font-bold tracking-tight">Calendar Ventana</p>
+          <div className="min-w-0">
+            <p className="truncate text-xl font-bold tracking-tight text-zinc-950">
+              Calendar Ventana
+            </p>
+            <p className="mt-0.5 text-xs font-medium tracking-wide text-zinc-500">
+              Gestión de reservas
+            </p>
+          </div>
         </div>
         <SidebarNav currentPath={currentPath} orientation="vertical" />
       </aside>
-      <header className="sticky top-0 border-b border-zinc-200/70 bg-white/95 p-3 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-40 border-b border-zinc-200/70 bg-white/95 p-3 shadow-sm backdrop-blur md:hidden">
         <div className="mb-2 flex items-center gap-2 px-1">
           <span
             aria-hidden="true"

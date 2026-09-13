@@ -8,7 +8,7 @@ export default function AppLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <div className="flex min-h-screen flex-col gap-3 bg-stone-100 p-3 md:flex-row">
+    <div className="flex min-h-screen flex-col md:flex-row">
       <AppNavigation />
       <main id="contenido" className="min-w-0 flex-1">
         <a
@@ -17,7 +17,9 @@ export default function AppLayout({
         >
           Saltar al contenido
         </a>
-        <div className="mx-auto w-full max-w-6xl p-4 md:p-6">{children}</div>
+        <div className="mx-auto w-full max-w-[1480px] px-5 py-7 sm:px-7 md:px-8 md:py-10 xl:px-12">
+          {children}
+        </div>
       </main>
     </div>
   );

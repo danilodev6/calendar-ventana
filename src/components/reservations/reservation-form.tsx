@@ -36,7 +36,7 @@ import {
 } from "@/server/reservation-actions";
 
 const inputClassName =
-  "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-base";
+  "min-h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-base text-zinc-900 shadow-sm outline-none transition-colors placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100";
 
 function FieldError({ message }: { message?: string }) {
   if (message === undefined || message === "") {
@@ -87,23 +87,19 @@ function StayDateField({
 
   const action = written ? "Cambiar fecha de" : "Elegir fecha de";
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-base font-medium">
+    <div className="flex flex-col gap-2">
+      <label htmlFor={id} className="text-sm font-semibold text-zinc-700">
         {label}
       </label>
       <button
         type="button"
         onClick={openPicker}
         aria-label={`${action} ${label.toLowerCase()}`}
-        className="flex h-14 w-full items-center justify-center rounded-xl border border-zinc-300 bg-white transition-colors hover:border-zinc-400 hover:bg-zinc-100"
+        className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 px-4 font-semibold text-zinc-700 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
       >
-        <CalendarDays aria-hidden="true" className="size-7 text-zinc-700" />
+        <CalendarDays aria-hidden="true" className="size-6" />
+        <span>{written ?? "Elegir fecha"}</span>
       </button>
-      {written !== null && (
-        <p aria-live="polite" className="text-lg font-semibold">
-          {written}
-        </p>
-      )}
       <input
         id={id}
         type="date"
@@ -179,10 +175,16 @@ export function ReservationForm({
     setBusinessError(result.message);
   };
 
-  const cancelHref = isEditing ? `/reservations/${reservationId}` : "/reservations";
+  const cancelHref = isEditing
+    ? `/reservations/${reservationId}`
+    : "/reservations";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className="flex flex-col gap-6"
+    >
       {businessError !== null && (
         <p
           role="alert"
@@ -192,234 +194,267 @@ export function ReservationForm({
         </p>
       )}
 
-      <div className="grid items-start gap-4 xl:grid-cols-2">
-        <div className="flex min-w-0 flex-col gap-4">
-          <Card className="p-4 md:p-5">
+      <div className="grid items-start gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <Card className="p-5 md:p-7">
             <CardHeader>
               <CardTitle>Datos del huésped</CardTitle>
             </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="guestName" className="text-base font-medium">
-              Nombre del huésped
-            </label>
-            <input
-              id="guestName"
-              type="text"
-              autoComplete="name"
-              className={inputClassName}
-              {...register("guestName")}
-            />
-            <FieldError message={errors.guestName?.message} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="phone" className="text-base font-medium">
-              Teléfono
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              autoComplete="tel"
-              className={inputClassName}
-              {...register("phone")}
-            />
-            <FieldError message={errors.phone?.message} />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="dni" className="text-base font-medium">
-                DNI <span className="font-normal text-zinc-500">(opcional)</span>
-              </label>
-              <input id="dni" type="text" className={inputClassName} {...register("dni")} />
-              <FieldError message={errors.dni?.message} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="guestCount" className="text-base font-medium">
-                Cantidad de personas{" "}
-                <span className="font-normal text-zinc-500">(opcional)</span>
-              </label>
-              <input
-                id="guestCount"
-                type="number"
-                min={1}
-                step={1}
-                className={inputClassName}
-                {...register("guestCount", {
-                  // Untouched null/undefined defaults reach this transform
-                  // as-is (not as ""), and Number(null) is 0 while
-                  // Number(undefined) is NaN: normalize every empty shape
-                  // to null so an optional blank stays blank.
-                  setValueAs: (value: unknown) =>
-                    value === "" ||
-                    value === null ||
-                    value === undefined ||
-                    (typeof value === "number" && Number.isNaN(value))
-                      ? null
-                      : Number(value),
-                })}
-              />
-              <FieldError message={errors.guestCount?.message} />
-            </div>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="email" className="text-base font-medium">
-              Email <span className="font-normal text-zinc-500">(opcional)</span>
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              className={inputClassName}
-              {...register("email")}
-            />
-            <FieldError message={errors.email?.message} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="originCity" className="text-base font-medium">
-              Localidad <span className="font-normal text-zinc-500">(opcional)</span>
-            </label>
-            <input
-              id="originCity"
-              type="text"
-              className={inputClassName}
-              {...register("originCity")}
-            />
-            <FieldError message={errors.originCity?.message} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="notes" className="text-base font-medium">
-              Notas <span className="font-normal text-zinc-500">(opcional)</span>
-            </label>
-            <textarea
-              id="notes"
-              rows={3}
-              className={inputClassName}
-              {...register("notes")}
-            />
-            <FieldError message={errors.notes?.message} />
-          </div>
-        </CardContent>
-      </Card>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label htmlFor="guestName" className="text-base font-medium">
+                  Nombre del huésped
+                </label>
+                <input
+                  id="guestName"
+                  type="text"
+                  autoComplete="name"
+                  className={inputClassName}
+                  {...register("guestName")}
+                />
+                <FieldError message={errors.guestName?.message} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="phone" className="text-base font-medium">
+                  Teléfono
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  className={inputClassName}
+                  {...register("phone")}
+                />
+                <FieldError message={errors.phone?.message} />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="dni" className="text-base font-medium">
+                    DNI{" "}
+                    <span className="font-normal text-zinc-500">
+                      (opcional)
+                    </span>
+                  </label>
+                  <input
+                    id="dni"
+                    type="text"
+                    className={inputClassName}
+                    {...register("dni")}
+                  />
+                  <FieldError message={errors.dni?.message} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="guestCount" className="text-base font-medium">
+                    Cantidad de personas{" "}
+                    <span className="font-normal text-zinc-500">
+                      (opcional)
+                    </span>
+                  </label>
+                  <input
+                    id="guestCount"
+                    type="number"
+                    min={1}
+                    step={1}
+                    className={inputClassName}
+                    {...register("guestCount", {
+                      // Untouched null/undefined defaults reach this transform
+                      // as-is (not as ""), and Number(null) is 0 while
+                      // Number(undefined) is NaN: normalize every empty shape
+                      // to null so an optional blank stays blank.
+                      setValueAs: (value: unknown) =>
+                        value === "" ||
+                        value === null ||
+                        value === undefined ||
+                        (typeof value === "number" && Number.isNaN(value))
+                          ? null
+                          : Number(value),
+                    })}
+                  />
+                  <FieldError message={errors.guestCount?.message} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="email" className="text-base font-medium">
+                  Email{" "}
+                  <span className="font-normal text-zinc-500">(opcional)</span>
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  className={inputClassName}
+                  {...register("email")}
+                />
+                <FieldError message={errors.email?.message} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="originCity" className="text-base font-medium">
+                  Localidad{" "}
+                  <span className="font-normal text-zinc-500">(opcional)</span>
+                </label>
+                <input
+                  id="originCity"
+                  type="text"
+                  className={inputClassName}
+                  {...register("originCity")}
+                />
+                <FieldError message={errors.originCity?.message} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="notes" className="text-base font-medium">
+                  Notas{" "}
+                  <span className="font-normal text-zinc-500">(opcional)</span>
+                </label>
+                <textarea
+                  id="notes"
+                  rows={3}
+                  className={inputClassName}
+                  {...register("notes")}
+                />
+                <FieldError message={errors.notes?.message} />
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <div className="flex min-w-0 flex-col gap-4">
-      <Card className="p-4 md:p-5">
-        <CardHeader>
-          <CardTitle>Estadía</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <StayDateField
-            id="checkIn"
-            label="Entrada"
-            initialValue={initialValues?.checkIn}
-            registration={register("checkIn")}
-            error={errors.checkIn?.message}
-          />
-          <StayDateField
-            id="checkOut"
-            label="Salida"
-            initialValue={initialValues?.checkOut}
-            registration={register("checkOut")}
-            error={errors.checkOut?.message}
-          />
-        </CardContent>
-      </Card>
-      <Card className="p-4 md:p-5">
-        <CardHeader>
-          <CardTitle>Reserva</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="status" className="text-base font-medium">
-              Estado
-            </label>
-            <select id="status" className={inputClassName} {...register("status")}>
-              {RESERVATION_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {RESERVATION_STATUS_LABELS[status]}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.status?.message} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="channel" className="text-base font-medium">
-              Origen
-            </label>
-            <select id="channel" className={inputClassName} {...register("channel")}>
-              {BOOKING_CHANNELS.map((channel) => (
-                <option key={channel} value={channel}>
-                  {BOOKING_CHANNEL_LABELS[channel]}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.channel?.message} />
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex min-w-0 flex-col gap-6">
+          <Card className="p-5 md:p-7">
+            <CardHeader>
+              <CardTitle>Estadía</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <StayDateField
+                id="checkIn"
+                label="Entrada"
+                initialValue={initialValues?.checkIn}
+                registration={register("checkIn")}
+                error={errors.checkIn?.message}
+              />
+              <StayDateField
+                id="checkOut"
+                label="Salida"
+                initialValue={initialValues?.checkOut}
+                registration={register("checkOut")}
+                error={errors.checkOut?.message}
+              />
+            </CardContent>
+          </Card>
+          <Card className="p-5 md:p-7">
+            <CardHeader>
+              <CardTitle>Reserva</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-1">
+                <label htmlFor="status" className="text-base font-medium">
+                  Estado
+                </label>
+                <select
+                  id="status"
+                  className={inputClassName}
+                  {...register("status")}
+                >
+                  {RESERVATION_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {RESERVATION_STATUS_LABELS[status]}
+                    </option>
+                  ))}
+                </select>
+                <FieldError message={errors.status?.message} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="channel" className="text-base font-medium">
+                  Origen
+                </label>
+                <select
+                  id="channel"
+                  className={inputClassName}
+                  {...register("channel")}
+                >
+                  {BOOKING_CHANNELS.map((channel) => (
+                    <option key={channel} value={channel}>
+                      {BOOKING_CHANNEL_LABELS[channel]}
+                    </option>
+                  ))}
+                </select>
+                <FieldError message={errors.channel?.message} />
+              </div>
+            </CardContent>
+          </Card>
 
-      <Card className="p-4 md:p-5">
-        <CardHeader>
-          <CardTitle>Pago</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="paymentStatus" className="text-base font-medium">
-              Estado del pago
-            </label>
-            <select
-              id="paymentStatus"
-              className={inputClassName}
-              {...register("paymentStatus")}
+          <Card className="p-5 md:p-7">
+            <CardHeader>
+              <CardTitle>Pago</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="paymentStatus"
+                  className="text-base font-medium"
+                >
+                  Estado del pago
+                </label>
+                <select
+                  id="paymentStatus"
+                  className={inputClassName}
+                  {...register("paymentStatus")}
+                >
+                  {PAYMENT_STATUSES.map((paymentStatus) => (
+                    <option key={paymentStatus} value={paymentStatus}>
+                      {PAYMENT_STATUS_LABELS[paymentStatus]}
+                    </option>
+                  ))}
+                </select>
+                <FieldError message={errors.paymentStatus?.message} />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <label
+                    htmlFor="totalAmount"
+                    className="text-base font-medium"
+                  >
+                    Total en pesos
+                  </label>
+                  <PesoInput
+                    name="totalAmount"
+                    control={control}
+                    id="totalAmount"
+                    className={cn(inputClassName, "text-right")}
+                  />
+                  <FieldError message={errors.totalAmount?.message} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label
+                    htmlFor="depositAmount"
+                    className="text-base font-medium"
+                  >
+                    Seña en pesos
+                  </label>
+                  <PesoInput
+                    name="depositAmount"
+                    control={control}
+                    id="depositAmount"
+                    className={cn(inputClassName, "text-right")}
+                  />
+                  <FieldError message={errors.depositAmount?.message} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col-reverse gap-3 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm sm:flex-row sm:justify-around sm:gap-0 sm:p-6">
+            <Link
+              href={cancelHref}
+              className={buttonVariants({ variant: "secondary" })}
             >
-              {PAYMENT_STATUSES.map((paymentStatus) => (
-                <option key={paymentStatus} value={paymentStatus}>
-                  {PAYMENT_STATUS_LABELS[paymentStatus]}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.paymentStatus?.message} />
+              Cancelar
+            </Link>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? "Guardando…"
+                : isEditing
+                  ? "Guardar cambios"
+                  : "Guardar reserva"}
+            </Button>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="totalAmount" className="text-base font-medium">
-                Total en pesos
-              </label>
-              <PesoInput
-                name="totalAmount"
-                control={control}
-                id="totalAmount"
-                className={cn(inputClassName, "text-right")}
-              />
-              <FieldError message={errors.totalAmount?.message} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="depositAmount" className="text-base font-medium">
-                Seña en pesos
-              </label>
-              <PesoInput
-                name="depositAmount"
-                control={control}
-                id="depositAmount"
-                className={cn(inputClassName, "text-right")}
-              />
-              <FieldError message={errors.depositAmount?.message} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-        <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-end">
-          <Link href={cancelHref} className={buttonVariants({ variant: "secondary" })}>
-            Cancelar
-          </Link>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? "Guardando…"
-              : isEditing
-                ? "Guardar cambios"
-                : "Guardar reserva"}
-          </Button>
-        </div>
         </div>
       </div>
     </form>

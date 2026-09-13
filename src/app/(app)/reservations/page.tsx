@@ -40,17 +40,26 @@ export default async function ReservationsPage({
   const isUnfiltered = filter === "all" && query === "" && sort === "desc";
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-        Todas las reservas
-      </h1>
+    <div className="flex flex-col gap-7">
+      <header>
+        <p className="mb-1 text-sm font-semibold tracking-wide text-violet-600 uppercase">
+          Historial
+        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-950 md:text-4xl">
+          Todas las reservas
+        </h1>
+        <p className="mt-2 max-w-2xl text-base text-zinc-600">
+          Buscá huéspedes y filtrá las estadías por su estado.
+        </p>
+      </header>
 
-      <form
-        method="get"
-        action="/reservations"
-        role="search"
-        className="flex flex-col gap-3 md:flex-row"
-      >
+      <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm sm:p-5">
+        <form
+          method="get"
+          action="/reservations"
+          role="search"
+          className="flex flex-col gap-3 md:flex-row"
+        >
         <input type="hidden" name="filter" value={filter} />
         <input type="hidden" name="sort" value={sort} />
         <label htmlFor="reservation-search" className="sr-only">
@@ -63,7 +72,7 @@ export default async function ReservationsPage({
           defaultValue={query}
           placeholder="Buscar por huésped…"
           autoComplete="off"
-          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-base"
+          className="min-h-12 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-base shadow-sm outline-none transition-colors placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
         />
         <div className="flex gap-3">
           <button
@@ -84,9 +93,9 @@ export default async function ReservationsPage({
             </Link>
           )}
         </div>
-      </form>
+        </form>
 
-      <nav aria-label="Filtrar por estado" className="flex flex-wrap gap-2">
+      <nav aria-label="Filtrar por estado" className="flex flex-wrap gap-2 border-t border-zinc-100 pt-4">
         {RESERVATION_FILTERS.map((option) => {
           const isActive = option === filter;
           return (
@@ -106,7 +115,7 @@ export default async function ReservationsPage({
                   : undefined
               }
               className={cn(
-                "rounded-full border px-4 py-2 text-base font-medium transition-colors",
+                "inline-flex min-h-10 items-center justify-center rounded-full border px-4 py-2 text-center text-sm leading-none font-semibold shadow-sm transition-all",
                 isActive
                   ? "border-zinc-900 bg-zinc-900 text-white"
                   : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100",
@@ -127,6 +136,7 @@ export default async function ReservationsPage({
           );
         })}
       </nav>
+      </div>
 
       {reservations.length === 0 && isUnfiltered ? (
         <Card>

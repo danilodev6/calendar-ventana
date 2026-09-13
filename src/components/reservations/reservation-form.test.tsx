@@ -249,7 +249,7 @@ describe("ReservationForm stay dates", () => {
     expect(screen.queryByText("12/09/2026")).toBeNull();
   });
 
-  it("writes the chosen date below the button", () => {
+  it("writes the chosen date inside the button", () => {
     render(<ReservationForm />);
     const input = screen.getByLabelText("Entrada") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "2026-09-12" } });

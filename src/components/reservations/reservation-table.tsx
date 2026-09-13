@@ -26,10 +26,10 @@ export function ReservationTable({ reservations }: ReservationTableProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-2 shadow-sm md:p-4">
-      <table className="w-full table-auto text-left text-base">
+    <div className="overflow-x-auto rounded-2xl border border-zinc-200/80 bg-white p-2 shadow-[0_1px_2px_rgba(24,24,27,0.04),0_12px_32px_rgba(24,24,27,0.035)] md:p-4">
+      <table className="w-full min-w-[860px] table-auto text-left text-sm">
         <thead>
-          <tr className="border-b border-zinc-200 text-zinc-600">
+          <tr className="border-b border-zinc-200 text-xs tracking-wide text-zinc-500 uppercase">
             <th scope="col" className="px-3 py-3 font-medium">
               Huésped
             </th>
@@ -63,11 +63,11 @@ export function ReservationTable({ reservations }: ReservationTableProps) {
           {reservations.map((reservation) => (
             <tr
               key={reservation.id}
-              className="border-b border-zinc-100 align-middle last:border-0"
+              className="border-b border-zinc-100 align-middle transition-colors hover:bg-zinc-50/80 last:border-0"
             >
-              <td className="max-w-44 truncate px-3 py-3 font-medium">{reservation.guestName}</td>
-              <td className="px-3 py-3 whitespace-nowrap">{formatCivilDate(reservation.checkIn)}</td>
-              <td className="px-3 py-3 whitespace-nowrap">{formatCivilDate(reservation.checkOut)}</td>
+              <td className="max-w-44 truncate px-3 py-4 text-base font-semibold text-zinc-900">{reservation.guestName}</td>
+              <td className="px-3 py-4 whitespace-nowrap text-zinc-600">{formatCivilDate(reservation.checkIn)}</td>
+              <td className="px-3 py-4 whitespace-nowrap text-zinc-600">{formatCivilDate(reservation.checkOut)}</td>
               <td className="hidden px-3 py-3 text-right lg:table-cell">
                 {nightsBetween(reservation.checkIn, reservation.checkOut)}
               </td>
@@ -86,7 +86,7 @@ export function ReservationTable({ reservations }: ReservationTableProps) {
               <td className="px-3 py-3">
                 <Link
                   href={`/reservations/${reservation.id}`}
-                  className={buttonVariants({ variant: "info", className: "min-h-10 px-4 py-1 text-sm" })}
+                  className={buttonVariants({ variant: "info", className: "min-h-9 rounded-lg px-4 py-1 text-sm" })}
                 >
                   Ver
                 </Link>

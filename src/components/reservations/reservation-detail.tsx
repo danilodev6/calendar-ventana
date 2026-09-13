@@ -25,9 +25,9 @@ function Definition({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-2">
-      <dt className="font-medium">{term}:</dt>
-      <dd>{children}</dd>
+    <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-3 border-b border-zinc-100 py-2.5 last:border-0">
+      <dt className="text-sm font-semibold text-zinc-500">{term}</dt>
+      <dd className="min-w-0 font-medium text-zinc-900">{children}</dd>
     </div>
   );
 }
@@ -40,11 +40,11 @@ export function ReservationDetail({ reservation }: ReservationDetailProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+      <h1 className="text-3xl font-bold tracking-tight text-zinc-950 md:text-4xl">
         {reservation.guestName}
       </h1>
 
-      <div className="grid items-stretch gap-4 xl:grid-cols-2">
+      <div className="grid items-stretch gap-6 xl:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>Datos del huésped</CardTitle>

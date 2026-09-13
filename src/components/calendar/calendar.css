@@ -3,11 +3,13 @@
    are soft and rounded; events are large pills. */
 
 .calendar-event {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 650;
   border-radius: 9999px;
-  padding: 2px 10px;
+  padding: 3px 9px;
   cursor: pointer;
+  border-width: 0;
+  box-shadow: 0 1px 2px rgb(24 24 27 / 0.1);
 }
 
 .calendar-event-inquiry {
@@ -36,9 +38,66 @@
   color: #2e1065;
 }
 
-/* Softer, larger multi-month grids. */
+/* Shared calendar controls and three balanced month cards. */
+.fc {
+  --fc-border-color: #e4e4e7;
+  --fc-button-bg-color: #ffffff;
+  --fc-button-border-color: #e4e4e7;
+  --fc-button-text-color: #3f3f46;
+  --fc-button-hover-bg-color: #f4f4f5;
+  --fc-button-hover-border-color: #d4d4d8;
+  --fc-button-active-bg-color: #18181b;
+  --fc-button-active-border-color: #18181b;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+
+.fc .fc-toolbar {
+  margin-bottom: 1.25rem;
+}
+
+.fc .fc-toolbar-chunk {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fc .fc-button-group {
+  gap: 0.5rem;
+}
+
+.fc .fc-button,
+.fc .fc-button-group > .fc-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1;
+  text-transform: none;
+  box-shadow: 0 1px 2px rgb(24 24 27 / 0.06);
+}
+
+.fc .fc-button-group > .fc-button:not(:first-child),
+.fc .fc-button-group > .fc-button:not(:last-child) {
+  margin-left: 0;
+  border-radius: 0.75rem;
+}
+
+.fc .fc-today-button:not(:disabled) {
+  background: #18181b;
+  border-color: #18181b;
+  color: white;
+}
+
 .fc-multimonth-month {
-  font-size: 1.05rem;
+  overflow: hidden;
+  border: 1px solid #e4e4e7;
+  border-radius: 1rem;
+  background: #fff;
+  font-size: 0.95rem;
 }
 
 /* The view itself renders as a bordered scroller box taller than its
@@ -50,20 +109,21 @@
 }
 
 .fc-multimonth .fc-scrollgrid {
-  border-radius: 18px;
-  overflow: hidden;
+  border: 0;
 }
 
 .fc-multimonth-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  padding: 0.5rem 0.75rem;
+  background: #fafafa;
+  font-size: 1.05rem;
+  font-weight: 750;
+  padding: 0.9rem 0.75rem;
+  text-transform: capitalize;
 }
 
 .fc-daygrid-day-number {
-  font-size: 1.05rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  padding: 6px 8px;
+  padding: 7px 8px;
 }
 
 .fc .fc-daygrid-day.fc-day-today {
@@ -76,6 +136,27 @@
 }
 
 .fc-col-header-cell {
-  font-size: 0.95rem;
+  background: #fafafa;
+  font-size: 0.76rem;
+  letter-spacing: 0.03em;
   text-transform: capitalize;
+}
+
+.fc .fc-daygrid-day-frame {
+  min-height: 5.25rem;
+}
+
+.fc .fc-daygrid-day-events {
+  margin-top: 0.15rem;
+}
+
+.fc .fc-event:focus-visible {
+  outline: 3px solid rgb(37 99 235 / 0.45);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .fc .fc-daygrid-day-frame {
+    min-height: 4.5rem;
+  }
 }

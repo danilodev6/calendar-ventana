@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 // color as a redundant cue only. Soft backgrounds with very dark text keep
 // contrast at WCAG AA for normal text.
 const badgeVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex min-h-7 items-center justify-center gap-1.5 rounded-full px-3 py-1 text-center text-xs leading-none font-bold whitespace-nowrap ring-1 ring-inset ring-black/[0.04] [&_svg]:size-3.5 [&_svg]:shrink-0",
   {
     variants: {
       tone: {

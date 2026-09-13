@@ -57,10 +57,10 @@ export function SidebarNav({
   const activeHref = findActiveHref(currentPath, items.map((item) => item.href));
 
   return (
-    <nav aria-label="Secciones principales" className="flex min-h-0 flex-1">
+    <nav aria-label="Secciones principales" className="min-h-0 flex-1">
       <ul
         className={cn(
-          "flex flex-1 gap-3",
+          "flex gap-2",
           orientation === "vertical" ? "flex-col" : "flex-row flex-wrap",
         )}
       >
@@ -69,26 +69,32 @@ export function SidebarNav({
           const Icon = item.icon;
           const tint = TINT_STYLES[item.tint];
           return (
-            <li key={item.href} className="flex min-h-0 flex-1">
+            <li
+              key={item.href}
+              className={cn(orientation === "horizontal" && "flex flex-1")}
+            >
               <Link
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 onClick={onNavigate}
                 className={cn(
-                  "flex min-h-12 flex-1 flex-col items-center justify-center gap-2 rounded-2xl px-3 py-4 text-center text-lg leading-tight font-semibold transition-colors",
+                  "group flex min-h-14 items-center gap-3 rounded-2xl px-3 py-3 text-base leading-tight font-semibold transition-all duration-200",
+                  orientation === "vertical"
+                    ? "w-full justify-start text-left"
+                    : "flex-1 flex-col justify-center text-center",
                   isActive
-                    ? tint.pill
-                    : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950",
+                    ? `${tint.pill} shadow-sm ring-1 ring-inset ring-black/[0.04]`
+                    : "text-zinc-600 hover:translate-x-0.5 hover:bg-zinc-100/80 hover:text-zinc-950",
                 )}
               >
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors",
+                    "flex size-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-105",
                     isActive ? tint.chip : tint.chipIdle,
                   )}
                 >
-                  <Icon className="size-6" />
+                  <Icon className="size-5" strokeWidth={2.1} />
                 </span>
                 {item.label}
               </Link>

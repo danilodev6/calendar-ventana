@@ -28,10 +28,15 @@ export default async function EditExpensePage({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-        Editar gasto
-      </h1>
+    <div className="flex flex-col gap-7">
+      <header>
+        <p className="mb-1 text-sm font-semibold tracking-wide text-amber-600 uppercase">
+          Balance
+        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-950 md:text-4xl">
+          Editar gasto
+        </h1>
+      </header>
       <ExpenseForm expenseId={id} initialValues={initialValues} />
     </div>
   );

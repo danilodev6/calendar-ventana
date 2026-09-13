@@ -33,7 +33,7 @@ export function ExpenseList({ expenses, onDeleted }: ExpenseListProps) {
       {expenses.map((expense) => (
         <li
           key={expense.id}
-          className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm md:flex-row md:items-center"
+          className="flex flex-col gap-3 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:flex-row md:items-center"
         >
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <p className="truncate text-base font-medium">{expense.description}</p>
@@ -42,10 +42,10 @@ export function ExpenseList({ expenses, onDeleted }: ExpenseListProps) {
           <p className="text-base font-semibold md:text-right">
             {formatPesos(expense.amount)}
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <Link
               href={`/balance/expenses/${expense.id}/edit`}
-              className="inline-flex min-h-12 items-center font-medium text-blue-700 underline underline-offset-2"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg px-3 font-semibold text-blue-700 transition-colors hover:bg-blue-50"
             >
               Editar
             </Link>
